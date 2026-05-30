@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Abo Vergleich & Entscheidungshilfe</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="data.js"></script>
+    <style>
+        .range-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        .range-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans antialiased">
+    <div id="app" v-cloak class="max-w-7xl mx-auto px-4 py-8 flex flex-col gap-8">
+        
+        <header class="text-center">
+            <h1 class="text-4xl font-extrabold text-blue-900 mb-2">AI Pro-Abo Entscheidungshilfe</h1>
+            <p class="text-gray-600">Vergleiche KI-Modelle anhand deiner persönlichen Präferenzen und berechne die Kosten.</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex justify-center space-x-4 border-b pb-4">
+            <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id" 
+                :class="['px-6 py-2 rounded-t-lg font-semibold transition-colors', currentTab === tab.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300']">
+                <i :class="tab.icon"></i> {{ tab.name }}
+            </button>
+        </nav>
+
+        <!-- TAB: Gewichtung -->
+        <div v-show="currentTab === 'weights'" class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">1. Gewichtung & Präferenzen</h2>
+                    <p class="text-sm text-gray-500">Stelle ein, wie wichtig dir die einzelnen Features sind (-5 = du willst es vermeiden, 0 = egal, 5 = unverzichtbar).</p>
+                    <button @click="resetData" class="text-sm text-red-500 hover:text-red-700 underline mt-1"><i class="fas fa-trash-alt"></i> Alle Daten zurücksetzen</button>
+                </div>
+                <button @click="addUser" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow">
+                    <i class="fas fa-user-plus"></i> Weitere Person hinzufügen (Sharing)
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b">
+                            <th class="p-4 w-1/4">Kategorie / Feature</th>
+                            <th v-for="(user, idx) in users" :key="user.id" class="p-4 border-l bg-gray-50 min-w-[250px]">
+                                <div class="flex justify-between items-center mb-2">
+                                    <input v-model="user.name" class="font-bold bg-transparent border-b border-gray-300 w-32 focus:outline-none focus:border-blue-500" />
+                                    <button v-if="users.length > 1" @click="removeUser(idx)" class="text-red-500 hover:text-red-700 text-sm" title="Nutzer entfernen">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="text-xs">
+                                    <select @change="applyProfile(user.id, $event.target.value)" class="w-full border rounded p-1 text-gray-600">
+                                        <option value="">-- Preset laden --</option>
+                                        <option v-for="(prof, pName) in profiles" :key="pName" :value="pName">{{ pName }}</option>
+                                    </select>
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template v-for="cat in data.categories" :key="cat.id">
+                            <tr class="bg-blue-50 border-b border-blue-200">
+                                <td :colspan="users.length + 1" class="p-3 font-semibold text-blue-900">
+                                    {{ cat.title }} <span class="text-sm font-normal text-blue-700 block">{{ cat.description }}</span>
+                                </td>
+                            </tr>
+                            <tr v-for="feat in cat.features" :key="feat.id" class="border-b hover:bg-gray-50">
+                                <td class="p-4 text-sm">{{ feat.label }}</td>
+                                <td v-for="user in users" :key="user.id" class="p-4 border-l">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <input type="range" min="-5" max="5" v-model.number="user.weights[feat.id]" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-slider">
+                                        <div class="text-xs font-mono font-bold" :class="getWeightColorClass(user.weights[feat.id])">
+                                            {{ user.weights[feat.id] > 0 ? '+' : '' }}{{ user.weights[feat.id] }}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB: Vergleichs-Daten -->
+        <div v-show="currentTab === 'raw'" class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">2. Fakten & Detail-Bewertung</h2>
+                    <p class="text-sm text-gray-500">Bewerte die spezifischen Fakten der einzelnen Abos für dich persönlich (-5 = furchtbar, 5 = großartig).</p>
+                </div>
+                <div v-if="users.length > 0" class="flex items-center gap-2">
+                    <label class="font-bold text-sm">Bewerten als:</label>
+                    <select v-model="activeUserIdInfoTab" class="border rounded p-2 text-sm focus:outline-none focus:border-blue-500">
+                        <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-50 border-b">
+                            <th class="p-3 w-1/4">Feature</th>
+                            <th v-for="plan in data.plans" :key="plan.id" class="p-3 border-l text-center font-bold min-w-[250px]">
+                                {{ plan.name }}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template v-for="cat in data.categories" :key="cat.id">
+                            <tr class="bg-gray-200 border-b"><td :colspan="data.plans.length + 1" class="p-2 font-semibold">{{ cat.title }}</td></tr>
+                            <tr v-for="feat in cat.features" :key="feat.id" class="border-b hover:bg-gray-50">
+                                <td class="p-3 font-medium">{{ feat.label }}</td>
+                                <td v-for="plan in data.plans" :key="plan.id" class="p-3 border-l text-center">
+                                    <div class="mb-3 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100 min-h-[40px] flex items-center justify-center">
+                                        {{ plan.facts?.[feat.id] ? plan.facts[feat.id] : 'Voreingestellt: ' + (plan.baseScores[feat.id] > 0 ? '+' : '') + plan.baseScores[feat.id] }}
+                                    </div>
+                                    <div v-if="activeUser" class="flex flex-col items-center gap-2">
+                                        <input type="range" min="-5" max="5" v-model.number="activeUser.planScores[plan.id][feat.id]" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-slider">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Dein Urteil:</span> 
+                                            <span :class="getScoreBadge(activeUser.planScores[plan.id][feat.id])">
+                                                {{ activeUser.planScores[plan.id][feat.id] > 0 ? '+' : '' }}{{ activeUser.planScores[plan.id][feat.id] }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB: Auswertung -->
+        <div v-show="currentTab === 'results'" class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">3. Empfehlung & Auswertung</h2>
+                    <p class="text-sm text-gray-500">Der Fit-Score ist normiert: 0 = neutral, +100 = sehr passend, -100 = sehr unpassend.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <label for="priceCap" class="text-sm font-semibold">Maximales Budget (gesamt):</label>
+                        <input type="number" id="priceCap" v-model.number="priceCap" placeholder="Kein Limit" class="border rounded p-1 w-24 text-sm focus:outline-none focus:border-blue-500">
+                        <select v-model="priceCapCycle" class="border rounded p-1 text-sm focus:outline-none focus:border-blue-500">
+                            <option value="monthly">pro Monat</option>
+                            <option value="yearly">pro Jahr</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="allowCombos" v-model="allowCombos" class="rounded text-blue-600 focus:outline-none focus:ring-blue-500">
+                        <label for="allowCombos" class="text-sm font-semibold cursor-pointer">Abo-Kombinationen (z.B. A + B)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Rank Cards -->
+                <div v-for="(result, index) in rankedResults" :key="result.id" 
+                    class="border rounded-xl p-5 shadow-sm relative overflow-hidden flex flex-col"
+                    :class="index === 0 ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200 bg-white'">
+                    
+                    <div v-if="index === 0" class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-lg">
+                        Beste Wahl
+                    </div>
+
+                    <h3 class="text-xl font-bold mb-1">{{ result.name }}</h3>
+                    <div class="text-3xl font-black mb-4 flex items-end gap-2" :class="result.totalScore >= 0 ? 'text-green-600' : 'text-red-600'">
+                        {{ result.totalScore > 0 ? '+' : '' }}{{ result.totalScore }}% <span class="text-sm font-normal text-gray-500 mb-1">Fit-Score</span>
+                    </div>
+
+                    <div class="flex-grow">
+                        <!-- Pros -->
+                        <div class="mb-4">
+                            <h4 class="text-green-700 font-bold text-sm mb-2"><i class="fas fa-check-circle"></i> Stärken & Erfüllt</h4>
+                            <ul class="text-xs space-y-2 text-gray-700">
+                                <li v-for="pro in result.pros.slice(0, 5)" :key="pro.featureId" class="flex flex-col">
+                                    <div class="flex justify-between mb-1">
+                                        <span class="truncate pr-2" :title="getFeatureLabel(pro.featureId)">{{ getFeatureLabel(pro.featureId) }}</span>
+                                        <span class="font-bold text-green-600">{{ formatContribution(pro.contrib) }}</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                        <div class="bg-green-500 h-1.5 rounded-full" :style="'width: ' + Math.min(100, Math.abs(pro.contrib)) + '%'"></div>
+                                    </div>
+                                </li>
+                                <li v-if="result.pros.length === 0" class="text-gray-400 italic">Keine expliziten Stärken definiert.</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Cons -->
+                        <div>
+                            <h4 class="text-red-700 font-bold text-sm mb-2"><i class="fas fa-times-circle"></i> Schwächen / Fehlt</h4>
+                            <ul class="text-xs space-y-2 text-gray-700">
+                                <li v-for="con in result.cons.slice(0, 5)" :key="con.featureId" class="flex flex-col">
+                                    <div class="flex justify-between mb-1">
+                                        <span class="truncate pr-2" :title="getFeatureLabel(con.featureId)">{{ getFeatureLabel(con.featureId) }}</span>
+                                        <span class="font-bold text-red-600">{{ formatContribution(con.contrib) }}</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5 flex justify-end">
+                                        <div class="bg-red-500 h-1.5 rounded-full" :style="'width: ' + Math.min(100, Math.abs(con.contrib)) + '%'"></div>
+                                    </div>
+                                </li>
+                                <li v-if="result.cons.length === 0" class="text-gray-400 italic">Keine großen Schwächen in deinen Prioritäten.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Kosten -->
+        <div v-show="currentTab === 'costs'" class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-2">4. Kostenrechner</h2>
+            <p class="text-sm text-gray-500 mb-6">Zusammenfassung der anfallenden Kosten basierend auf der Nutzeranzahl ({{ users.length }}).</p>
+
+            <div class="mb-4">
+                <label class="mr-4 font-semibold"><input type="radio" value="monthly" v-model="billingCycle" class="mr-1"> Monatliche Ansicht</label>
+                <label class="font-semibold"><input type="radio" value="yearly" v-model="billingCycle" class="mr-1"> Jährliche Ansicht</label>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 border-b">
+                            <th class="p-3">Plan / Kombi</th>
+                            <th class="p-3">Erlaubte Nutzer / Account</th>
+                            <th class="p-3 font-bold text-right text-blue-800">Gesamtkosten ({{ billingCycle === 'monthly' ? 'Monat' : 'Jahr' }})</th>
+                            <th class="p-3 font-bold text-right text-green-700">Kosten pro Person</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="plan in calculatedCosts" :key="plan.id" class="border-b hover:bg-gray-50">
+                            <td class="p-3 font-bold">{{ plan.name }}</td>
+                            <td class="p-3">{{ plan.seatsDisplay }}</td>
+                            <td class="p-3 text-right font-mono">{{ formatCurrency(plan.totalCost) }}</td>
+                            <td class="p-3 text-right font-mono">{{ formatCurrency(plan.costPerPerson) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4 text-xs text-gray-500 bg-blue-50 p-3 rounded">
+                <i class="fas fa-info-circle text-blue-500"></i> Beachte: Bei Single-Seat Accounts (z.B. Claude) müssen für mehrere Personen entweder Accounts geteilt werden (was die UX einschränkt, siehe Gewichtung "Account Sharing") - der Rechner hier kalkuliert aber der Einfachheit halber den Gesamtpreis geteilt durch die Personenanzahl, also angenommen man teilt sich die Kosten des einen Accounts / oder der gemeinsamen Kombi. 
+            </div>
+        </div>
+
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
