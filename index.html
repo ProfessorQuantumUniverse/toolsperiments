@@ -1,1 +1,436 @@
-index
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Dorking Recon Assistant</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --text-color: #c9d1d9;
+            --accent-color: #58a6ff;
+            --accent-hover: #1f6feb;
+            --button-bg: #21262d;
+            --button-hover: #30363d;
+            --visited-bg: #1a3d24;
+            --visited-border: #2ea043;
+            --border-color: #30363d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        h1 { margin: 0 0 15px 0; font-size: 24px; color: #fff; }
+
+        .control-bar {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            flex-grow: 1;
+            min-width: 250px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        button {
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        button:hover { background-color: var(--button-hover); }
+
+        .btn-primary { background-color: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+        .btn-primary:hover { background-color: var(--accent-hover); }
+        .btn-danger { background-color: #da3633; color: #fff; border-color: #da3633; }
+        .btn-danger:hover { background-color: #b32d2a; }
+
+        /* Aufklappmenü / Accordion */
+        #advancedPanel {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-color);
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        #advancedPanel.active { display: flex; }
+
+        .container { padding: 20px; max-width: 1400px; margin: 0 auto; }
+
+        .category-section { margin-bottom: 40px; }
+        .category-title {
+            font-size: 20px;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        .dork-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .dork-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+            padding: 15px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            height: 100%;
+        }
+
+        .dork-btn span.title { font-weight: bold; margin-bottom: 5px; color: #fff; }
+        .dork-btn span.query { font-family: monospace; font-size: 12px; color: #8b949e; word-break: break-all; }
+
+        .dork-btn.visited {
+            background-color: var(--visited-bg);
+            border-color: var(--visited-border);
+        }
+        .dork-btn.visited span.title { color: #a5d6ff; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🔍 Recon Search Assistant (Google Dorking)</h1>
+    <div class="control-bar">
+        <input type="text" id="targetDomain" placeholder="Standard Target Domain (z.B. example.com) -> wird zu site:example.com">
+        <button class="btn-primary" id="toggleAdvancedBtn">⚙️ Erweiterte Parameter umschalten</button>
+        <button class="btn-danger" id="resetBtn">🗑️ Markierungen zurücksetzen</button>
+    </div>
+    
+    <!-- Aufklappmenü für erweiterte Inputs, die von bestimmten Gruppen benötigt werden -->
+    <div id="advancedPanel">
+        <input type="text" id="targetKeyword" placeholder="Spezifisches Keyword (z.B. admin, password)">
+        <input type="text" id="targetExt" placeholder="Dateiendung (z.B. pdf, sql, env)">
+        <input type="text" id="targetUsername" placeholder="Benutzername (für Social Media / Code Suche)">
+    </div>
+</header>
+
+<div class="container" id="dorkContainer">
+    <!-- Generierter Content kommt hier rein -->
+</div>
+
+<script>
+    // 100 Google Dorks aufgeteilt in 10 Kategorien
+    const dorkData =[
+        {
+            category: "1. Fehler & SQL Injections (Error Messages)",
+            dorks:[
+                { title: "Generic SQL Syntax Errors", query: 'intext:"sql syntax near" | intext:"syntax error has occurred" | intext:"incorrect syntax near" | intext:"unexpected end of SQL command" {domain}' },
+                { title: "MySQL Connect/Query Warnings", query: 'intext:"Warning: mysql_connect()" | intext:"Warning: mysql_query()" | intext:"Warning: pg_connect()" {domain}' },
+                { title: "MariaDB SQL Errors", query: 'intext:"You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version" {domain}' },
+                { title: "PostgreSQL Error Logs", query: 'intext:"PostgreSQL query failed: ERROR: syntax error at or near" {domain}' },
+                { title: "PHP Parse Errors", query: 'intext:"Parse error: syntax error, unexpected" ext:php {domain}' },
+                { title: "ASP.NET Server Errors", query: 'intext:"Server Error in" intitle:"Runtime Error" {domain}' },
+                { title: "Django Debug Mode Explosed", query: 'intitle:"DisallowedHost at /" | intitle:"Page not found at /" intext:"Django" {domain}' },
+                { title: "Ruby on Rails Exceptions", query: 'intitle:"Action Controller: Exception caught" | intext:"Ruby on Rails application could not be started" {domain}' },
+                { title: "Java Stack Traces (Tomcat)", query: 'intext:"java.lang.NullPointerException" | intext:"org.apache.catalina" {domain}' },
+                { title: "Symfony Profiler Exposed", query: 'intitle:"Profiler" intext:"Symfony Profiler" {domain}' }
+            ]
+        },
+        {
+            category: "2. APIs & Web Services (Swagger, REST)",
+            dorks:[
+                { title: "ArcGIS REST Services", query: 'intext:"ArcGIS REST Services Directory" intitle:"Folder:" {domain}' },
+                { title: "Swagger & API Docs", query: 'inurl:swagger | inurl:api-docs | inurl:swagger-ui {domain}' },
+                { title: "GraphQL Endpoints", query: 'inurl:graphql | inurl:graphiql | intitle:"GraphiQL" {domain}' },
+                { title: "WSDL Web Services", query: 'ext:wsdl | inurl:"?wsdl" {domain}' },
+                { title: "WordPress JSON API Users", query: 'inurl:"/wp-json/wp/v2/users" {domain}' },
+                { title: "Spring Boot Actuator", query: 'inurl:"/actuator/env" | inurl:"/actuator/health" {domain}' },
+                { title: "Firebase Databases (Open)", query: 'inurl:"firebaseio.com/.json" {domain}' },
+                { title: "Postman API Collections", query: 'ext:json intext:"_postman_id" {domain}' },
+                { title: "Kibana Dashboards", query: 'inurl:"/app/kibana" intitle:"Kibana" {domain}' },
+                { title: "JIRA / Confluence APIs", query: 'inurl:"/rest/api/2/user" | inurl:"/rest/api/latest" {domain}' }
+            ]
+        },
+        {
+            category: "3. Konfigurationsdateien (Exposed Configs)",
+            dorks:[
+                { title: "Umgebungsvariablen (.env)", query: 'ext:env intext:"DB_PASSWORD" | intext:"SECRET_KEY" {domain}' },
+                { title: "WordPress wp-config.php", query: 'inurl:wp-config.php ext:txt | ext:bak | ext:old {domain}' },
+                { title: "Docker Compose Files", query: 'ext:yml | ext:yaml intext:"docker-compose" intext:"MYSQL_ROOT_PASSWORD" {domain}' },
+                { title: "Web.config (ASP.NET)", query: 'ext:config intext:"connectionStrings" {domain}' },
+                { title: "Git Config Files", query: 'inurl:".git/config" {domain}' },
+                { title: "SSH Konfigurationen", query: 'ext:conf inurl:ssh intext:"PermitRootLogin" {domain}' },
+                { title: "VPN Profile / Configs", query: 'ext:ovpn | ext:pcf | ext:txt intext:"client" intext:"remote" {domain}' },
+                { title: "Apache/Nginx Configs", query: 'ext:conf intext:"server {" | intext:"VirtualHost" {domain}' },
+                { title: "FileZilla FTP Config", query: 'ext:xml intext:"FileZilla" intext:"Pass" {domain}' },
+                { title: "Kubernetes Secrets", query: 'ext:yaml intext:"apiVersion: v1" intext:"kind: Secret" {domain}' }
+            ]
+        },
+        {
+            category: "4. Verzeichnisstrukturen (Directory Traversal)",
+            dorks:[
+                { title: "Index of / (Standard)", query: 'intitle:"index of" "parent directory" {domain}' },
+                { title: "Index of /admin", query: 'intitle:"index of /admin" {domain}' },
+                { title: "Index of /backup", query: 'intitle:"index of /backup" | intitle:"index of /bak" {domain}' },
+                { title: "Index of /logs", query: 'intitle:"index of /logs" | intitle:"index of /log" {domain}' },
+                { title: "Index of /api", query: 'intitle:"index of /api" {domain}' },
+                { title: "Index of /conf /config", query: 'intitle:"index of /conf" | intitle:"index of /config" {domain}' },
+                { title: "Index of /db /database", query: 'intitle:"index of /db" | intitle:"index of /database" {domain}' },
+                { title: "Index of /images (Bypass)", query: 'intitle:"index of /images" {domain}' },
+                { title: "Index of /ssh /certs", query: 'intitle:"index of /ssh" | intitle:"index of /certs" {domain}' },
+                { title: "Index of /private /secret", query: 'intitle:"index of /private" | intitle:"index of /secret" {domain}' }
+            ]
+        },
+        {
+            category: "5. Datenbanken & Dumps (Exposed DBs)",
+            dorks:[
+                { title: "SQL Dumps", query: 'ext:sql intext:"INSERT INTO" {domain}' },
+                { title: "SQLite Databases", query: 'ext:sqlite | ext:db | ext:sq3 {domain}' },
+                { title: "phpMyAdmin Setup", query: 'inurl:"phpmyadmin/setup" {domain}' },
+                { title: "MongoDB Logs / Dumps", query: 'ext:json | ext:bson intext:"_id" intext:"ObjectId" {domain}' },
+                { title: "Microsoft Access DBs", query: 'ext:mdb | ext:accdb {domain}' },
+                { title: "Redis Config / Data", query: 'ext:rdb | ext:conf intext:"redis" {domain}' },
+                { title: "Oracle DB Exports", query: 'ext:dmp intext:"EXPORT:V" {domain}' },
+                { title: "CouchDB Web Interface", query: 'inurl:"_utils/document.html" {domain}' },
+                { title: "Database Passwords", query: 'ext:sql intext:"password" | intext:"passwd" | intext:"pwd" {domain}' },
+                { title: "MAMP/XAMPP DB Pages", query: 'intitle:"phpMyAdmin" "Welcome to phpMyAdmin" {domain}' }
+            ]
+        },
+        {
+            category: "6. Logdateien (System & Server Logs)",
+            dorks:[
+                { title: "Generic Server Logs", query: 'ext:log {domain}' },
+                { title: "Apache/Nginx Access Logs", query: 'ext:log intext:"GET / HTTP/1.1" | intext:"POST / HTTP/1.1" {domain}' },
+                { title: "Error Logs", query: 'ext:log intext:"error" | intext:"warning" | intext:"fatal" {domain}' },
+                { title: "SSH Logs (Auth)", query: 'ext:log intext:"sshd" intext:"Accepted password" | intext:"Failed password" {domain}' },
+                { title: "MySQL/DB Logs", query: 'ext:log intext:"mysqld" | intext:"Query" {domain}' },
+                { title: "Mail Server Logs", query: 'ext:log intext:"postfix/smtpd" | intext:"sendmail" {domain}' },
+                { title: "System Auth Logs", query: 'ext:log intext:"auth.log" | intext:"syslog" {domain}' },
+                { title: "Windows Event Logs", query: 'ext:evtx | ext:evt {domain}' },
+                { title: "Application Logs", query: 'ext:log intitle:"index of" "app.log" {domain}' },
+                { title: "Tomcat Catalina Logs", query: 'ext:log intext:"catalina" intext:"org.apache.catalina.startup" {domain}' }
+            ]
+        },
+        {
+            category: "7. Admin-Panels & Login-Portale",
+            dorks:[
+                { title: "Standard Admin Login", query: 'inurl:admin inurl:login {domain}' },
+                { title: "WordPress Admin", query: 'inurl:wp-login.php | inurl:wp-admin {domain}' },
+                { title: "Joomla Admin", query: 'inurl:administrator/index.php {domain}' },
+                { title: "Drupal Login", query: 'inurl:user/login intext:"Log in" {domain}' },
+                { title: "Magento Admin", query: 'inurl:admin intext:"Magento" {domain}' },
+                { title: "cPanel / WHM", query: 'inurl:cpanel | inurl:2082 | inurl:2083 {domain}' },
+                { title: "Plesk Login", query: 'intitle:"Plesk Obsidian" | inurl:8443 {domain}' },
+                { title: "Router / Firewall Logins", query: 'intitle:"router" | intitle:"firewall" inurl:login {domain}' },
+                { title: "Jenkins CI/CD Login", query: 'intitle:"Dashboard [Jenkins]" | inurl:"/login?from=%2F" {domain}' },
+                { title: "Grafana Login", query: 'intitle:"Grafana" intext:"Welcome to Grafana" {domain}' }
+            ]
+        },
+        {
+            category: "8. Sensible Dokumente & Backups",
+            dorks:[
+                { title: "ZIP/TAR Backups", query: 'ext:zip | ext:tar | ext:gz | ext:bak intitle:"index of" {domain}' },
+                { title: "Geheime PDFs", query: 'ext:pdf intext:"confidential" | intext:"streng vertraulich" | intext:"internal use only" {domain}' },
+                { title: "Excel Passwörter", query: 'ext:xlsx | ext:xls intext:"password" | intext:"login" {domain}' },
+                { title: "Word Dokumente (Intern)", query: 'ext:doc | ext:docx intext:"internal" | intext:"do not distribute" {domain}' },
+                { title: "Gehaltslisten / Finanzdaten", query: 'ext:xls | ext:xlsx intext:"salary" | intext:"gehalt" | intext:"finance" {domain}' },
+                { title: "Private RSA Keys", query: 'ext:key | ext:pem intext:"BEGIN RSA PRIVATE KEY" {domain}' },
+                { title: "SQL Backups", query: 'ext:sql.gz | ext:sql.zip {domain}' },
+                { title: "Server Snapshots", query: 'ext:vmdk | ext:ova | ext:ovf {domain}' },
+                { title: "Source Code Zips", query: 'ext:zip intext:"src" | intext:"source" | intext:"code" {domain}' },
+                { title: "Notizen / Textdateien", query: 'ext:txt intext:"password" | intext:"creds" | intext:"credentials" {domain}' }
+            ]
+        },
+        {
+            category: "9. Keyword & Custom Extension Search (Benötigt Aufklappmenü Inputs!)",
+            dorks:[
+                { title: "Custom Ext + Keyword", query: 'ext:{ext} "{keyword}" {domain}' },
+                { title: "In URL Keyword", query: 'inurl:"{keyword}" ext:{ext} {domain}' },
+                { title: "In Title Keyword", query: 'intitle:"{keyword}" {domain}' },
+                { title: "In Text Keyword", query: 'intext:"{keyword}" {domain}' },
+                { title: "Directory mit Keyword", query: 'intitle:"index of" "{keyword}" {domain}' },
+                { title: "Dokumente mit Keyword", query: '(ext:pdf | ext:doc | ext:xlsx) "{keyword}" {domain}' },
+                { title: "Config mit Keyword", query: '(ext:conf | ext:env | ext:ini) "{keyword}" {domain}' },
+                { title: "Logfile mit Keyword", query: 'ext:log "{keyword}" {domain}' },
+                { title: "Sourcecode Suche", query: '(ext:php | ext:py | ext:js) "{keyword}" {domain}' },
+                { title: "Backup Suche", query: '(ext:bak | ext:zip) "{keyword}" {domain}' }
+            ]
+        },
+        {
+            category: "10. Cloud, Infrastruktur & Third-Party",
+            dorks:[
+                { title: "AWS S3 Buckets Open", query: 'site:s3.amazonaws.com intitle:"index of" {domain}' },
+                { title: "AWS S3 Keyword Search", query: 'site:s3.amazonaws.com "{keyword}"' },
+                { title: "GitHub Code Search", query: 'site:github.com "{keyword}" {domain}' },
+                { title: "Pastebin Leaks", query: 'site:pastebin.com "{keyword}" {domain}' },
+                { title: "Trello Boards Public", query: 'site:trello.com/b/ "{keyword}" {domain}' },
+                { title: "Google Drive Open Folders", query: 'site:drive.google.com/drive/folders/ "{keyword}"' },
+                { title: "GitLab Public Repos", query: 'site:gitlab.com "{keyword}" {domain}' },
+                { title: "Atlassian / Jira Public", query: 'site:atlassian.net "{keyword}"' },
+                { title: "LinkedIn Mitarbeiter", query: 'site:linkedin.com/in/ "{keyword}"' },
+                { title: "Target Username Profiling", query: '"{username}" (site:twitter.com | site:instagram.com | site:reddit.com | site:github.com)' }
+            ]
+        }
+    ];
+
+    const dorkContainer = document.getElementById('dorkContainer');
+    const resetBtn = document.getElementById('resetBtn');
+    const toggleAdvancedBtn = document.getElementById('toggleAdvancedBtn');
+    const advancedPanel = document.getElementById('advancedPanel');
+
+    // UI Generieren
+    function renderDorks() {
+        dorkContainer.innerHTML = '';
+        let globalIdCounter = 0;
+
+        dorkData.forEach((section, sIndex) => {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'category-section';
+
+            const title = document.createElement('h2');
+            title.className = 'category-title';
+            title.innerText = section.category;
+            sectionDiv.appendChild(title);
+
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'dork-grid';
+
+            section.dorks.forEach((dork, dIndex) => {
+                const btnId = `dork_${sIndex}_${dIndex}`;
+                const btn = document.createElement('button');
+                btn.className = 'dork-btn';
+                btn.id = btnId;
+                
+                // Prüfen ob bereits in LocalStorage als geklickt markiert
+                if (localStorage.getItem(btnId) === 'true') {
+                    btn.classList.add('visited');
+                }
+
+                btn.innerHTML = `
+                    <span class="title">${dork.title}</span>
+                    <span class="query">${dork.query}</span>
+                `;
+
+                btn.addEventListener('click', () => {
+                    executeDork(dork.query, btnId);
+                });
+
+                gridDiv.appendChild(btn);
+            });
+
+            sectionDiv.appendChild(gridDiv);
+            dorkContainer.appendChild(sectionDiv);
+        });
+    }
+
+    // Such-Logik und Variablen-Ersetzung
+    function executeDork(rawQuery, btnId) {
+        const domain = document.getElementById('targetDomain').value.trim();
+        const keyword = document.getElementById('targetKeyword').value.trim();
+        const ext = document.getElementById('targetExt').value.trim();
+        const username = document.getElementById('targetUsername').value.trim();
+
+        let finalQuery = rawQuery;
+
+        // Ersetze {domain}
+        if (domain !== '') {
+            finalQuery = finalQuery.replace(/{domain}/g, `site:${domain}`);
+        } else {
+            finalQuery = finalQuery.replace(/{domain}/g, ''); // Leeren wenn nicht gesetzt
+        }
+
+        // Ersetze {keyword}
+        if (keyword !== '') {
+            finalQuery = finalQuery.replace(/{keyword}/g, keyword);
+        } else if (finalQuery.includes('{keyword}')) {
+            alert('Achtung: Für diesen Dork solltest du das "Spezifische Keyword" in den Erweiterten Parametern setzen!');
+            finalQuery = finalQuery.replace(/{keyword}/g, 'password'); // Fallback
+        }
+
+        // Ersetze {ext}
+        if (ext !== '') {
+            finalQuery = finalQuery.replace(/{ext}/g, ext);
+        } else if (finalQuery.includes('{ext}')) {
+            alert('Achtung: Bitte eine Dateiendung (z.B. pdf) in den Erweiterten Parametern setzen!');
+            finalQuery = finalQuery.replace(/{ext}/g, 'pdf'); // Fallback
+        }
+
+        // Ersetze {username}
+        if (username !== '') {
+            finalQuery = finalQuery.replace(/{username}/g, username);
+        } else if (finalQuery.includes('{username}')) {
+            alert('Achtung: Bitte einen Benutzernamen in den Erweiterten Parametern setzen!');
+            finalQuery = finalQuery.replace(/{username}/g, 'johndoe'); // Fallback
+        }
+
+        // Leerzeichen bereinigen
+        finalQuery = finalQuery.replace(/\s+/g, ' ').trim();
+
+        // Als gelesen markieren und speichern
+        const btn = document.getElementById(btnId);
+        btn.classList.add('visited');
+        localStorage.setItem(btnId, 'true');
+
+        // Google Suche in neuem Tab öffnen
+        const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(finalQuery)}`;
+        window.open(googleUrl, '_blank');
+    }
+
+    // Toggle Erweitertes Menü
+    toggleAdvancedBtn.addEventListener('click', () => {
+        advancedPanel.classList.toggle('active');
+    });
+
+    // Reset Button Logik
+    resetBtn.addEventListener('click', () => {
+        if(confirm('Möchtest du wirklich alle Markierungen zurücksetzen?')) {
+            // Nur die Dork-Keys aus dem LocalStorage löschen, falls andere Sachen dort liegen
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('dork_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            // Neu rendern
+            renderDorks();
+        }
+    });
+
+    // Initiales Rendern beim Laden der Seite
+    window.onload = renderDorks;
+
+</script>
+</body>
+</html>
