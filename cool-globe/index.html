@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sci-Fi Global Monitor</title>
+  
+  <script src="https://unpkg.com/globe.gl"></script>
+  
+  <style>
+    :root {
+      --hud-primary: #00ffcc;
+      --hud-secondary: #90e0ff;
+      --hud-bg: rgba(0, 18, 24, 0.86);
+      --hud-bg-deep: rgba(0, 8, 12, 0.7);
+      --hud-text: #d6f7ff;
+      --hud-dim: #95b6bf;
+      --ok: #00ff8c;
+      --warn: #ffcf5a;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(0, 255, 204, 0.2), transparent 35%),
+        radial-gradient(circle at 75% 22%, rgba(0, 102, 255, 0.18), transparent 33%),
+        #000;
+      font-family: "Consolas", "Lucida Console", monospace;
+      color: var(--hud-text);
+    }
+
+    #hud {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      color: var(--hud-primary);
+      z-index: 10;
+      background: linear-gradient(155deg, var(--hud-bg), var(--hud-bg-deep));
+      padding: 18px;
+      border: 1px solid rgba(0, 255, 204, 0.75);
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 255, 204, 0.25);
+      text-transform: uppercase;
+      width: min(360px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      overflow: auto;
+      backdrop-filter: blur(7px);
+      pointer-events: auto;
+      animation: hud-in 0.7s ease;
+    }
+
+    @keyframes hud-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #hud h1 {
+      margin: 0 0 8px 0;
+      font-size: 1.25rem;
+      letter-spacing: 0.06em;
+      text-shadow: 0 0 10px rgba(0, 255, 204, 0.6);
+    }
+
+    #hud p { margin: 5px 0; font-size: 0.85rem; color: var(--hud-dim); }
+    #hud .subtitle { margin-bottom: 12px; line-height: 1.4; }
+
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      border: 1px solid rgba(144, 224, 255, 0.55);
+      border-radius: 999px;
+      color: var(--hud-secondary);
+      background: rgba(0, 30, 38, 0.45);
+      letter-spacing: 0.08em;
+    }
+
+    .toggle-container {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(0, 255, 204, 0.3);
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      border-radius: 8px;
+      transition: background-color 0.2s ease;
+    }
+
+    .toggle-row:hover {
+      background: rgba(0, 255, 204, 0.08);
+    }
+
+    .toggle-label { font-size: 0.82rem; cursor: pointer; text-shadow: 0 0 3px rgba(0, 255, 204, 0.6); }
+    .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 20px; border: 1px solid #00ffcc; }
+    .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: #00ffcc; transition: .4s; border-radius: 50%; box-shadow: 0 0 8px #00ffcc; }
+    input:checked + .slider { background-color: rgba(0, 255, 204, 0.2); }
+    input:checked + .slider:before { transform: translateX(20px); background-color: #fff; box-shadow: 0 0 10px #fff; }
+    .status-val { color: #00ff00; font-weight: bold; text-shadow: 0 0 5px #00ff00;}
+    .stats-container { margin-top: 14px; font-size: 0.75rem; color: #aac4ca; border-top: 1px solid rgba(0,255,204,0.3); padding-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .stat-row span:nth-child(2) { color: #fff; font-weight: bold; }
+
+    #hud::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      z-index: -1;
+      background-size: 100% 4px;
+      pointer-events: none;
+      border-radius: 12px;
+    }
+
+    @media (max-width: 700px) {
+      #hud {
+        left: 10px;
+        right: 10px;
+        width: auto;
+        top: 10px;
+      }
+      .toggle-label { font-size: 0.76rem; }
+      .stat-row { font-size: 0.72rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <h1>Global Operations</h1>
+    <p class="subtitle">Live Multi-API Intelligence Stream</p>
+    <div class="badge-row">
+      <span class="badge">Free APIs</span>
+      <span class="badge">Realtime Layers</span>
+      <span class="badge">Per-Source Toggle</span>
+    </div>
+    <p>Network Link: <span class="status-val" id="net-status">ONLINE</span></p>
+    <div class="toggle-container">
+      <div class="toggle-row"><label class="toggle-label" for="toggle-arcs">Cyber-Traffic (Sim)</label><label class="switch"><input type="checkbox" id="toggle-arcs" checked><span class="slider"></span></label></div>
+      <div class="toggle-row"><label class="toggle-label" for="toggle-eq">USGS Earthquakes</label><label class="switch"><input type="checkbox" id="toggle-eq" checked><span class="slider"></span></label></div>
+      <div class="toggle-row"><label class="toggle-label" for="toggle-cables">Submarine Cables</label><label class="switch"><input type="checkbox" id="toggle-cables"><span class="slider"></span></label></div>
+      <div class="toggle-row"><label class="toggle-label" for="toggle-iss">ISS Position</label><label class="switch"><input type="checkbox" id="toggle-iss" checked><span class="slider"></span></label></div>
+      <div class="toggle-row"><label class="toggle-label" for="toggle-wiki">Wiki Edits (Live)</label><label class="switch"><input type="checkbox" id="toggle-wiki"><span class="slider"></span></label></div>
+      <div class="toggle-row"><label class="toggle-label" for="toggle-nasa">NASA EONET Events</label><label class="switch"><input type="checkbox" id="toggle-nasa"><span class="slider"></span></label></div>
+      <div class="toggle-row"><label class="toggle-label" for="toggle-covid">COVID-19 Hotspots</label><label class="switch"><input type="checkbox" id="toggle-covid" checked><span class="slider"></span></label></div>
+      <div class="toggle-row"><label class="toggle-label" for="toggle-spacex">SpaceX Upcoming Launches</label><label class="switch"><input type="checkbox" id="toggle-spacex" checked><span class="slider"></span></label></div>
+      <div class="toggle-row"><label class="toggle-label" for="toggle-weather">Open-Meteo City Weather</label><label class="switch"><input type="checkbox" id="toggle-weather" checked><span class="slider"></span></label></div>
+    </div>
+    <div class="stats-container">
+      <div class="stat-row"><span>Earthquakes (30d):</span> <span id="eq-count">...</span></div>
+      <div class="stat-row"><span>Submarine Cables:</span> <span id="cable-count">...</span></div>
+      <div class="stat-row"><span>ISS Altitude:</span> <span id="iss-alt">...</span></div>
+      <div class="stat-row"><span>Wiki Edits (Live):</span> <span id="wiki-count">0</span></div>
+      <div class="stat-row"><span>NASA Alerts:</span> <span id="nasa-count">...</span></div>
+      <div class="stat-row"><span>COVID Countries:</span> <span id="covid-count">...</span></div>
+      <div class="stat-row"><span>SpaceX Launches:</span> <span id="spacex-count">...</span></div>
+      <div class="stat-row"><span>Weather Cities:</span> <span id="weather-count">...</span></div>
+    </div>
+  </div>
+  <div id="globeViz"></div>
+
+  <script>
+    const state = {
+      arcs: true,
+      eq: true,
+      cables: false,
+      iss: true,
+      wiki: false,
+      nasa: false,
+      covid: true,
+      spacex: true,
+      weather: true
+    };
+
+    const dataStore = {
+      arcs: [],
+      eqRings: [],
+      eqPoints: [],
+      cables: [],
+      iss: [],
+      wiki: [],
+      nasa: [],
+      covid: [],
+      spacex: [],
+      weather: []
+    };
+
+    const world = Globe()(document.getElementById("globeViz"))
+      .globeImageUrl("https://unpkg.com/three-globe/example/img/earth-dark.jpg")
+      .bumpImageUrl("https://unpkg.com/three-globe/example/img/earth-topology.png")
+      .backgroundImageUrl("https://unpkg.com/three-globe/example/img/night-sky.png")
+      .pointOfView({ altitude: 2, lat: 20, lng: 10 }, 2000);
+
+    world.controls().autoRotate = true; world.controls().autoRotateSpeed = 0.5;
+
+    world
+      .arcColor("color").arcDashLength(0.4).arcDashGap(0.2).arcDashInitialGap(()=>Math.random()*5).arcDashAnimateTime(2000).arcAltitudeAutoScale(0.3)
+      .ringColor("color").ringMaxRadius("maxR").ringPropagationSpeed("speed").ringRepeatPeriod("period")
+      .pointColor("color").pointAltitude("alt").pointRadius("radius").pointLabel("label")
+      .pathPoints("coords").pathPointLat(p => p[0]).pathPointLng(p => p[1]).pathColor("color").pathResolution(2)
+      .htmlElement(d => {
+        const el = document.createElement("div"); el.innerHTML = d.html; el.style.color = d.color; el.style.fontSize = d.size; el.style.textShadow = "0 0 10px " + d.color; el.style.pointerEvents = "none"; return el;
+      });
+
+    const safeSetText = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = value;
+    };
+
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+    const updateLayers = () => {
+      world.arcsData(state.arcs ? dataStore.arcs : []);
+      world.ringsData((state.eq ? dataStore.eqRings : []).concat(state.wiki ? dataStore.wiki : []));
+      world.pointsData(
+        (state.eq ? dataStore.eqPoints : [])
+          .concat(state.nasa ? dataStore.nasa : [])
+          .concat(state.covid ? dataStore.covid : [])
+          .concat(state.spacex ? dataStore.spacex : [])
+          .concat(state.weather ? dataStore.weather : [])
+      );
+      world.pathsData(state.cables ? dataStore.cables : []);
+      world.htmlElementsData(state.iss ? dataStore.iss : []);
+    };
+
+    const ARC_COUNT = 40;
+    dataStore.arcs = [...Array(ARC_COUNT).keys()].map(() => ({ startLat: (Math.random()-0.5)*180, startLng: (Math.random()-0.5)*360, endLat: (Math.random()-0.5)*180, endLng: (Math.random()-0.5)*360, color: ["#00ffcc", "#ff00ff"] }));
+
+    fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.geojson")
+      .then(r => r.json())
+      .then(data => {
+        const features = Array.isArray(data.features) ? data.features : [];
+        safeSetText("eq-count", features.length);
+        features.forEach(f => {
+          const lat = f?.geometry?.coordinates?.[1];
+          const lng = f?.geometry?.coordinates?.[0];
+          const mag = Number(f?.properties?.mag) || 0;
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+          dataStore.eqRings.push({
+            lat,
+            lng,
+            maxR: clamp(Math.pow(mag, 2) * 0.1, 0.15, 6),
+            color: t => `rgba(255, 70, 70, ${1 - t})`,
+            speed: 3,
+            period: 800
+          });
+
+          dataStore.eqPoints.push({
+            lat,
+            lng,
+            alt: 0.01,
+            radius: clamp(mag * 0.06, 0.07, 0.4),
+            color: "rgba(255, 70, 70, 0.82)",
+            label: `<div style="background:#000;padding:4px;border:1px solid #ff5e5e;color:white;border-radius:4px;">Mag: ${mag.toFixed(1)}<br/>${f?.properties?.place || "Unknown"}</div>`
+          });
+        });
+        updateLayers();
+      })
+      .catch(() => safeSetText("eq-count", "API Error"));
+
+    fetch("https://www.submarinecablemap.com/api/v3/cable/cable-geo.json")
+      .then(r => r.json())
+      .then(data => {
+        const features = Array.isArray(data.features) ? data.features : [];
+        const paths = [];
+
+        features.forEach(f => {
+          const color = f?.properties?.color || "rgba(0, 255, 204, 0.42)";
+          if (f?.geometry?.type === "LineString" && Array.isArray(f.geometry.coordinates)) {
+            paths.push({ coords: f.geometry.coordinates.map(c => [c[1], c[0]]), color });
+          }
+          if (f?.geometry?.type === "MultiLineString" && Array.isArray(f.geometry.coordinates)) {
+            f.geometry.coordinates.forEach(line => {
+              paths.push({ coords: line.map(c => [c[1], c[0]]), color });
+            });
+          }
+        });
+
+        dataStore.cables = paths;
+        safeSetText("cable-count", `${features.length} links`);
+        updateLayers();
+      })
+      .catch(() => safeSetText("cable-count", "API/CORS Error"));
+
+    const updateISS = async () => {
+      try {
+        const r = await fetch("https://api.wheretheiss.at/v1/satellites/25544"); const data = await r.json();
+        dataStore.iss = [{ lat: data.latitude, lng: data.longitude, html: "🛰️ ISS", color: "#fff", size: "26px" }];
+        safeSetText("iss-alt", Math.round(data.altitude) + " km");
+        updateLayers();
+      } catch(e) {
+        safeSetText("iss-alt", "Signal Lost");
+      }
+    }; setInterval(updateISS, 3000); updateISS();
+
+    fetch("https://eonet.gsfc.nasa.gov/api/v3/events?status=open")
+      .then(r => r.json())
+      .then(data => {
+        const events = Array.isArray(data.events) ? data.events : [];
+        const validEvents = events.filter(ev => Array.isArray(ev.geometries) && ev.geometries.length > 0);
+        safeSetText("nasa-count", validEvents.length);
+
+        dataStore.nasa = validEvents.map(ev => {
+          const g = ev.geometries[0];
+          let lat = 0;
+          let lng = 0;
+
+          if (g.type === "Point" && Array.isArray(g.coordinates)) {
+            lng = g.coordinates[0];
+            lat = g.coordinates[1];
+          } else if (g.type === "Polygon" && Array.isArray(g.coordinates?.[0]?.[0])) {
+            lng = g.coordinates[0][0][0];
+            lat = g.coordinates[0][0][1];
+          }
+
+          const category = (ev.categories?.[0]?.title || "event").toLowerCase();
+          let color = "rgba(255, 165, 0, 0.8)";
+          if (category.includes("fire") || category.includes("volcano")) color = "rgba(255, 80, 80, 0.9)";
+          if (category.includes("storm") || category.includes("cyclone")) color = "rgba(0, 150, 255, 0.9)";
+
+          return {
+            lat,
+            lng,
+            color,
+            alt: 0.03,
+            radius: 0.3,
+            label: `<div style="background:#000;padding:4px;border:1px solid orange;color:white;border-radius:4px;">${ev.categories?.[0]?.title || "Event"}<br/>${ev.title || "Unknown"}</div>`
+          };
+        }).filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+
+        updateLayers();
+      })
+      .catch(() => safeSetText("nasa-count", "API Error"));
+
+    fetch("https://disease.sh/v3/covid-19/countries")
+      .then(r => r.json())
+      .then(data => {
+        const countries = Array.isArray(data) ? data : [];
+        dataStore.covid = countries
+          .filter(c => Number.isFinite(c?.countryInfo?.lat) && Number.isFinite(c?.countryInfo?.long))
+          .map(c => {
+            const cases = Number(c.cases) || 0;
+            const casesPerM = Number(c.casesPerOneMillion) || 0;
+            const intensity = clamp(casesPerM / 9000, 0.15, 1);
+            return {
+              lat: c.countryInfo.lat,
+              lng: c.countryInfo.long,
+              alt: 0.015,
+              radius: clamp(0.08 + Math.log10(Math.max(cases, 10)) * 0.04, 0.08, 0.38),
+              color: `rgba(255, ${Math.round(220 * (1 - intensity))}, 0, 0.82)`,
+              label: `<div style="background:#000;padding:4px;border:1px solid #ff9800;color:white;border-radius:4px;">${c.country}<br/>Cases: ${cases.toLocaleString()}</div>`
+            };
+          });
+        safeSetText("covid-count", dataStore.covid.length);
+        updateLayers();
+      })
+      .catch(() => safeSetText("covid-count", "API Error"));
+
+    Promise.all([
+      fetch("https://api.spacexdata.com/v4/launches/upcoming").then(r => r.json()),
+      fetch("https://api.spacexdata.com/v4/launchpads").then(r => r.json())
+    ])
+      .then(([launches, launchpads]) => {
+        const padMap = new Map((Array.isArray(launchpads) ? launchpads : []).map(p => [p.id, p]));
+        const upcoming = Array.isArray(launches) ? launches.slice(0, 30) : [];
+
+        dataStore.spacex = upcoming
+          .map(launch => {
+            const pad = padMap.get(launch.launchpad);
+            if (!pad || !Number.isFinite(pad.latitude) || !Number.isFinite(pad.longitude)) return null;
+            const unixDate = Number(launch.date_unix) || 0;
+            const localDate = unixDate > 0 ? new Date(unixDate * 1000).toLocaleString() : "n/a";
+            return {
+              lat: pad.latitude,
+              lng: pad.longitude,
+              alt: 0.025,
+              radius: 0.22,
+              color: "rgba(80, 170, 255, 0.9)",
+              label: `<div style="background:#000;padding:4px;border:1px solid #53a4ff;color:white;border-radius:4px;">${launch.name || "SpaceX Mission"}<br/>${localDate}</div>`
+            };
+          })
+          .filter(Boolean);
+
+        safeSetText("spacex-count", dataStore.spacex.length);
+        updateLayers();
+      })
+      .catch(() => safeSetText("spacex-count", "API Error"));
+
+    const weatherCities = [
+      { name: "Berlin", lat: 52.52, lng: 13.41 },
+      { name: "New York", lat: 40.71, lng: -74.0 },
+      { name: "Sao Paulo", lat: -23.55, lng: -46.64 },
+      { name: "Tokyo", lat: 35.68, lng: 139.69 },
+      { name: "Cape Town", lat: -33.92, lng: 18.42 },
+      { name: "Sydney", lat: -33.87, lng: 151.21 },
+      { name: "Delhi", lat: 28.61, lng: 77.21 },
+      { name: "Cairo", lat: 30.04, lng: 31.24 },
+      { name: "Anchorage", lat: 61.22, lng: -149.9 },
+      { name: "Mexico City", lat: 19.43, lng: -99.13 }
+    ];
+
+    Promise.all(
+      weatherCities.map(city =>
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lng}&current=temperature_2m,wind_speed_10m&timezone=auto`)
+          .then(r => r.json())
+          .then(data => ({ city, current: data.current }))
+          .catch(() => null)
+      )
+    )
+      .then(results => {
+        dataStore.weather = results
+          .filter(Boolean)
+          .filter(entry => Number.isFinite(entry.current?.temperature_2m))
+          .map(entry => {
+            const temp = Number(entry.current.temperature_2m);
+            const wind = Number(entry.current.wind_speed_10m) || 0;
+            const hot = clamp((temp + 10) / 45, 0, 1);
+            const cold = 1 - hot;
+            return {
+              lat: entry.city.lat,
+              lng: entry.city.lng,
+              alt: 0.02,
+              radius: clamp(0.14 + wind / 120, 0.12, 0.32),
+              color: `rgba(${Math.round(255 * hot)}, ${Math.round(100 + 120 * cold)}, ${Math.round(255 * cold)}, 0.88)`,
+              label: `<div style="background:#000;padding:4px;border:1px solid #89f5ff;color:white;border-radius:4px;">${entry.city.name}<br/>${temp.toFixed(1)} C, Wind ${wind.toFixed(1)} km/h</div>`
+            };
+          });
+
+        safeSetText("weather-count", dataStore.weather.length);
+        updateLayers();
+      })
+      .catch(() => safeSetText("weather-count", "API Error"));
+
+    let wikiEdits = 0; const ws = new EventSource("https://stream.wikimedia.org/v2/stream/recentchange");
+    let pr = [];
+    setInterval(() => {
+      if(!state.wiki) return;
+      if(pr.length > 0) { dataStore.wiki.push(...pr); if(dataStore.wiki.length > 40) dataStore.wiki = dataStore.wiki.slice(-40); updateLayers(); pr = []; }
+    }, 1000);
+    ws.onmessage = (e) => {
+      if(!state.wiki) return;
+      try {
+        const p = JSON.parse(e.data); if(p.type !== "edit") return;
+        wikiEdits++; safeSetText("wiki-count", wikiEdits);
+        pr.push({ lat: (Math.random()-0.5)*160, lng: (Math.random()-0.5)*360, maxR: 5, color: t => `rgba(200, 100, 255, ${1-t})`, speed: 2, period: 1000 });
+      } catch(err) {}
+    };
+
+    ["arcs", "eq", "cables", "iss", "wiki", "nasa", "covid", "spacex", "weather"].forEach(k => {
+      document.getElementById("toggle-" + k).addEventListener("change", (e) => { state[k] = e.target.checked; if(!state.wiki) dataStore.wiki = []; updateLayers(); });
+    });
+
+    ws.onerror = () => {
+      safeSetText("net-status", "DEGRADED");
+      document.getElementById("net-status").style.color = "var(--warn)";
+    };
+
+    updateLayers();
+  </script>
+</body>
+</html>

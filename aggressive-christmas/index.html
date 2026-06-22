@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎄 Aggressive Christmas Countdown! 🎅</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Snowfall Canvas -->
+    <canvas id="snowCanvas"></canvas>
+    
+    <!-- Floating Ornaments -->
+    <div id="ornaments-container"></div>
+    
+    <!-- Twinkling Lights -->
+    <div id="lights-container"></div>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="main-title">
+                <span class="emoji-bounce">🎄</span>
+                AGGRESSIVE CHRISTMAS COUNTDOWN
+                <span class="emoji-bounce">🎅</span>
+            </h1>
+            <p class="subtitle">The Most Intrusive Holiday Countdown on the Internet!</p>
+        </header>
+
+        <!-- Countdown Display -->
+        <div class="countdown-section">
+            <!-- Time Display Mode Selector -->
+            <div class="mode-selector">
+                <label for="timeDisplayMode">Time Display Mode: </label>
+                <select id="timeDisplayMode" class="mode-dropdown">
+                    <option value="normal">Normal</option>
+                    <option value="binary">Binary</option>
+                    <option value="milliseconds">Milliseconds</option>
+                    <option value="years">Years (Decimal)</option>
+                    <option value="unix">Unix Timestamp</option>
+                    <option value="hex">Hexadecimal</option>
+                    <option value="percentage">Percentage</option>
+                    <option value="seconds">Seconds Only</option>
+                    <option value="scientific">Scientific Notation</option>
+                    <option value="octal">Octal</option>
+                </select>
+            </div>
+            
+            <div class="countdown-container">
+                <div class="countdown-box">
+                    <div class="countdown-number" id="days">0</div>
+                    <div class="countdown-label">Days</div>
+                </div>
+                <div class="countdown-separator">:</div>
+                <div class="countdown-box">
+                    <div class="countdown-number" id="hours">0</div>
+                    <div class="countdown-label">Hours</div>
+                </div>
+                <div class="countdown-separator">:</div>
+                <div class="countdown-box">
+                    <div class="countdown-number" id="minutes">0</div>
+                    <div class="countdown-label">Minutes</div>
+                </div>
+                <div class="countdown-separator">:</div>
+                <div class="countdown-box">
+                    <div class="countdown-number" id="seconds">0</div>
+                    <div class="countdown-label">Seconds</div>
+                </div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+                <span class="progress-text" id="progressText">0% to Christmas!</span>
+            </div>
+        </div>
+
+        <!-- Feature Panels -->
+        <div class="features-grid">
+            <!-- Santa Tracker -->
+            <div class="feature-card santa-tracker">
+                <h2>🎅 Santa Tracker</h2>
+                <div class="santa-location" id="santaLocation">
+                    <p class="location-text">Currently at: North Pole</p>
+                    <p class="preparation-status">Preparing gifts...</p>
+                    <div class="santa-progress">
+                        <div class="santa-progress-bar" id="santaProgress"></div>
+                    </div>
+                    <p class="gifts-prepared" id="giftsPrepared">0 gifts ready!</p>
+                </div>
+            </div>
+
+            <!-- Christmas Facts -->
+            <div class="feature-card facts-card">
+                <h2>🎁 Christmas Fact</h2>
+                <div class="fact-content" id="factContent">
+                    <p>Loading amazing Christmas facts...</p>
+                </div>
+                <button class="btn-primary" id="newFactBtn">New Fact!</button>
+            </div>
+
+            <!-- Gift Wishlist -->
+            <div class="feature-card wishlist-card">
+                <h2>📝 Your Wishlist</h2>
+                <div class="wishlist-container">
+                    <input type="text" id="wishInput" placeholder="Add a gift wish..." class="wish-input">
+                    <button class="btn-primary" id="addWishBtn">Add</button>
+                    <ul class="wish-list" id="wishList"></ul>
+                </div>
+            </div>
+
+            <!-- Naughty or Nice Meter -->
+            <div class="feature-card naughty-nice-card">
+                <h2>😇 Naughty or Nice?</h2>
+                <div class="meter-container">
+                    <div class="meter">
+                        <div class="meter-fill" id="meterFill"></div>
+                    </div>
+                    <div class="meter-labels">
+                        <span>😈 Naughty</span>
+                        <span id="scoreValue">50%</span>
+                        <span>😇 Nice</span>
+                    </div>
+                    <button class="btn-primary" id="beNiceBtn">Be Nice!</button>
+                </div>
+            </div>
+
+            <!-- Christmas Music Player -->
+            <div class="feature-card music-card">
+                <h2>🎵 Christmas Radio</h2>
+                <div class="music-controls">
+                    <button class="btn-music" id="playMusicBtn">🔊 Play Music</button>
+                    <button class="btn-music" id="stopMusicBtn">🔇 Stop Music</button>
+                    <div class="volume-control">
+                        <label>Volume: <span id="volumeValue">50</span>%</label>
+                        <input type="range" id="volumeSlider" min="0" max="100" value="50">
+                    </div>
+                    <div class="sound-effects">
+                        <button class="btn-effect" data-sound="jingle">🔔 Jingle</button>
+                        <button class="btn-effect" data-sound="hohoho">🎅 Ho Ho Ho</button>
+                        <button class="btn-effect" data-sound="bells">🔔 Bells</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Christmas Messages -->
+            <div class="feature-card messages-card">
+                <h2>💌 Christmas Messages</h2>
+                <div class="message-display" id="messageDisplay">
+                    Ho Ho Ho! Christmas is coming!
+                </div>
+                <button class="btn-primary" id="randomMessageBtn">New Message</button>
+            </div>
+        </div>
+
+        <!-- Particle Effect Triggers -->
+        <div class="effect-buttons">
+            <button class="btn-effect-large" id="confettiBtn">🎊 Confetti Blast!</button>
+            <button class="btn-effect-large" id="fireworksBtn">🎆 Fireworks!</button>
+            <button class="btn-effect-large" id="snowstormBtn">❄️ Snowstorm!</button>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-section">
+            <h2>🎯 Christmas Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="visitCount">0</div>
+                    <div class="stat-label">Your Visits</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="daysElapsed">0</div>
+                    <div class="stat-label">Days Since Last Christmas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="percentComplete">0%</div>
+                    <div class="stat-label">Year Complete</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="sleepsLeft">0</div>
+                    <div class="stat-label">Sleeps Until Christmas</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup Notifications -->
+    <div id="popup-container"></div>
+
+    <!-- Particles Container -->
+    <div id="particles-container"></div>
+
+    <!-- Settings Panel -->
+    <div class="settings-toggle" id="settingsToggle">⚙️</div>
+    <div class="settings-panel" id="settingsPanel">
+        <h3>Settings</h3>
+        <label>
+            <input type="checkbox" id="snowToggle" checked> Snow Effects
+        </label>
+        <label>
+            <input type="checkbox" id="popupsToggle" checked> Popup Messages
+        </label>
+        <label>
+            <input type="checkbox" id="ornamentsToggle" checked> Floating Ornaments
+        </label>
+        <label>
+            <input type="checkbox" id="lightsToggle" checked> Twinkling Lights
+        </label>
+        <label>
+            <input type="checkbox" id="autoMusicToggle"> Auto-play Music
+        </label>
+    </div>
+
+    <!-- Fullscreen Button -->
+    <div class="fullscreen-btn" id="fullscreenBtn" title="Enter Fullscreen Mode">⛶</div>
+    <button class="exit-fullscreen-btn" id="exitFullscreenBtn">Exit Fullscreen ✕</button>
+
+    <footer class="footer">
+        <p>🎄 Made with aggressive holiday spirit! 🎅</p>
+        <p>May your days be merry and bright... whether you like it or not! 😈</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

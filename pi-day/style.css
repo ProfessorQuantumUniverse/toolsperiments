@@ -1,0 +1,1284 @@
+/* ─── Reset & Base ─────────────────────────────────────── */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #0a0a0f;
+    --bg-alt: #12121a;
+    --green: #00ff41;
+    --green-dim: #00cc33;
+    --gold: #f5c842;
+    --blue: #42a5f5;
+    --white: #e0e0e0;
+    --card-bg: rgba(15, 15, 25, 0.85);
+    --card-border: rgba(0, 255, 65, 0.15);
+    --text: #e0e0e0;
+    --text-muted: #999;
+    --text-dim: #666;
+}
+
+/* ─── Light Theme ──────────────────────────────────────── */
+[data-theme="light"] {
+    --bg: #f0f0f5;
+    --bg-alt: #e8e8ee;
+    --green: #008f24;
+    --green-dim: #006f1c;
+    --gold: #c99a00;
+    --blue: #1976d2;
+    --white: #1a1a2e;
+    --card-bg: rgba(255, 255, 255, 0.92);
+    --card-border: rgba(0, 143, 36, 0.2);
+    --text: #1a1a2e;
+    --text-muted: #555;
+    --text-dim: #888;
+}
+
+[data-theme="light"] body {
+    color: var(--text);
+}
+
+[data-theme="light"] #piMatrix {
+    opacity: 0.08;
+}
+
+[data-theme="light"] .fact-card p,
+[data-theme="light"] .legend-card p,
+[data-theme="light"] .formula-desc,
+[data-theme="light"] .timeline-content p,
+[data-theme="light"] .tool-card p {
+    color: var(--text-muted);
+}
+
+[data-theme="light"] .legend-card blockquote {
+    color: var(--text-dim);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Courier New', 'Fira Code', 'Consolas', monospace;
+    background: var(--bg);
+    color: var(--white);
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+/* ─── Matrix Canvas ────────────────────────────────────── */
+#piMatrix {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.25;
+}
+
+/* ─── Confetti Canvas ──────────────────────────────────── */
+#confettiCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    pointer-events: none;
+}
+
+/* ─── Content Overlay ──────────────────────────────────── */
+.content {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* ─── Navbar ───────────────────────────────────────────── */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 2rem;
+    background: rgba(10, 10, 15, 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--card-border);
+    transition: transform 0.3s ease;
+}
+
+[data-theme="light"] .navbar {
+    background: rgba(240, 240, 245, 0.92);
+}
+
+.nav-brand {
+    font-size: 1.8rem;
+    color: var(--green);
+    font-weight: bold;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+}
+
+.nav-links a:hover {
+    color: var(--green);
+}
+
+.nav-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--green);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* ─── Theme Toggle ─────────────────────────────────────── */
+.theme-toggle {
+    position: fixed;
+    bottom: 5rem;
+    right: 1.5rem;
+    z-index: 100;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: transform 0.3s, background 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    border-color: var(--green);
+}
+
+/* ─── Scroll-to-Top Button ─────────────────────────────── */
+.scroll-top {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 100;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--green);
+    font-size: 1.3rem;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+}
+
+.scroll-top.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.scroll-top:hover {
+    border-color: var(--green);
+    background: rgba(0, 255, 65, 0.1);
+}
+
+/* ─── Hero ─────────────────────────────────────────────── */
+.hero {
+    text-align: center;
+    padding: 7rem 1rem 3rem;
+}
+
+.pi-symbol {
+    font-size: 8rem;
+    color: var(--green);
+    text-shadow: 0 0 40px rgba(0, 255, 65, 0.5), 0 0 80px rgba(0, 255, 65, 0.2);
+    animation: pulse 3s ease-in-out infinite;
+    line-height: 1;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.85; }
+}
+
+.hero h1 {
+    font-size: 3rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin: 0.5rem 0;
+}
+
+.date-badge {
+    display: inline-block;
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid var(--card-border);
+    border-radius: 2rem;
+    padding: 0.5rem 2rem;
+    font-size: 1.1rem;
+    color: var(--green-dim);
+    margin-top: 1rem;
+}
+
+.hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.hero-stat {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 0.3rem 1rem;
+    border: 1px solid var(--card-border);
+    border-radius: 1rem;
+    background: var(--card-bg);
+}
+
+.hero-stat strong {
+    color: var(--green);
+}
+
+/* ─── Pi Progress Bar ──────────────────────────────────── */
+.pi-progress-section {
+    padding: 0.5rem 0 1.5rem;
+}
+
+.pi-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.pi-progress-bar {
+    height: 6px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.pi-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--gold));
+    border-radius: 3px;
+    width: 0%;
+    transition: width 1s ease-out;
+}
+
+/* ─── Countdown ────────────────────────────────────────── */
+.countdown-section {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.countdown-section h2 {
+    font-size: 1.5rem;
+    color: var(--green);
+    margin-bottom: 2rem;
+    letter-spacing: 0.1em;
+}
+
+.countdown {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.time-block {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 1.5rem 1.2rem;
+    min-width: 100px;
+    text-align: center;
+}
+
+.time-value {
+    display: block;
+    font-size: 2.8rem;
+    font-weight: bold;
+    color: var(--green);
+    text-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+}
+
+.time-label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #888;
+    margin-top: 0.3rem;
+}
+
+.time-separator {
+    font-size: 2.5rem;
+    color: var(--green-dim);
+    padding: 0 0.2rem;
+}
+
+.celebration {
+    padding: 2rem;
+}
+
+.celebration-text {
+    font-size: 2.5rem;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(245, 200, 66, 0.5);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.celebration-sub {
+    color: var(--green);
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+.hidden {
+    display: none;
+}
+
+/* ─── Today's Digit ────────────────────────────────────── */
+.today-digit-section {
+    padding: 1rem 0 2rem;
+    text-align: center;
+}
+
+.today-digit-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 2rem;
+    display: inline-block;
+    min-width: 320px;
+}
+
+.today-digit-card h3 {
+    color: var(--green);
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.today-digit-info {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.today-digit-value {
+    font-size: 5rem;
+    font-weight: bold;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(245, 200, 66, 0.4);
+    line-height: 1.2;
+    margin-top: 0.5rem;
+}
+
+/* ─── Pi Marquee ───────────────────────────────────────── */
+.pi-marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    background: rgba(0, 255, 65, 0.05);
+    border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+    padding: 0.8rem 0;
+    margin: 2rem 0;
+}
+
+.pi-marquee-inner {
+    display: inline-block;
+    animation: marquee 60s linear infinite;
+    font-size: 1rem;
+    color: var(--green-dim);
+    letter-spacing: 0.15em;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* ─── Facts ────────────────────────────────────────────── */
+.facts-section {
+    padding: 4rem 0;
+}
+
+.facts-section h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: var(--green);
+    margin-bottom: 2.5rem;
+}
+
+.facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.fact-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 2rem;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.fact-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--green-dim);
+}
+
+.fact-icon {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+}
+
+.fact-card h3 {
+    color: var(--green);
+    font-size: 1.1rem;
+    margin-bottom: 0.6rem;
+}
+
+.fact-card p {
+    font-size: 0.9rem;
+    color: #bbb;
+    line-height: 1.7;
+}
+
+/* ─── Formulas ─────────────────────────────────────────── */
+.formulas-section {
+    padding: 4rem 0;
+}
+
+.formulas-section h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: var(--green);
+    margin-bottom: 2.5rem;
+}
+
+.formulas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.formula-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 1.8rem;
+    text-align: center;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.formula-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--green-dim);
+}
+
+.formula-name {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.8rem;
+}
+
+.formula-expr {
+    font-size: 1.5rem;
+    color: var(--gold);
+    font-weight: bold;
+    margin-bottom: 0.8rem;
+    line-height: 1.4;
+}
+
+.formula-desc {
+    font-size: 0.85rem;
+    color: #bbb;
+    line-height: 1.5;
+}
+
+/* ─── Approximations Table ─────────────────────────────── */
+.approx-section {
+    padding: 4rem 0;
+}
+
+.approx-section h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: var(--green);
+    margin-bottom: 2.5rem;
+}
+
+.approx-table-wrap {
+    overflow-x: auto;
+}
+
+.approx-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.approx-table th,
+.approx-table td {
+    padding: 0.9rem 1.2rem;
+    text-align: left;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.approx-table th {
+    color: var(--green);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: rgba(0, 255, 65, 0.05);
+}
+
+.approx-table td {
+    color: var(--text-muted);
+}
+
+.approx-table tr:last-child td {
+    border-bottom: none;
+    color: var(--gold);
+    font-weight: bold;
+}
+
+/* ─── Bases Section ────────────────────────────────────── */
+.bases-section {
+    padding: 4rem 0;
+}
+
+.bases-section h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: var(--green);
+    margin-bottom: 2.5rem;
+}
+
+.bases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+}
+
+.base-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.base-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--green-dim);
+}
+
+.base-name {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+}
+
+.base-value {
+    font-size: 1.15rem;
+    color: var(--green);
+    word-break: break-all;
+}
+
+/* ─── Legends ──────────────────────────────────────────── */
+.legends-section {
+    padding: 4rem 0;
+}
+
+.legends-section h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: var(--gold);
+    margin-bottom: 1rem;
+}
+
+.legends-intro {
+    text-align: center;
+    color: #999;
+    max-width: 650px;
+    margin: 0 auto 2.5rem;
+    font-size: 0.95rem;
+}
+
+.legends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.legend-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 2.5rem 2rem;
+    border: 1px solid transparent;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.legend-card:hover {
+    transform: translateY(-4px);
+}
+
+.legend-card.einstein {
+    border-color: rgba(245, 200, 66, 0.2);
+}
+
+.legend-card.einstein:hover {
+    border-color: var(--gold);
+}
+
+.legend-card.hawking {
+    border-color: rgba(66, 165, 245, 0.2);
+}
+
+.legend-card.hawking:hover {
+    border-color: var(--blue);
+}
+
+.legend-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.legend-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.einstein h3 { color: var(--gold); }
+.hawking h3 { color: var(--blue); }
+
+.legend-date {
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 0.4rem;
+}
+
+.legend-age {
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    padding: 0.3rem 0.8rem;
+    display: inline-block;
+    border-radius: 1rem;
+}
+
+.einstein .legend-age {
+    color: var(--gold);
+    background: rgba(245, 200, 66, 0.1);
+}
+
+.hawking .legend-age {
+    color: var(--blue);
+    background: rgba(66, 165, 245, 0.1);
+}
+
+.legend-card p {
+    font-size: 0.9rem;
+    color: #bbb;
+    line-height: 1.7;
+}
+
+.legend-card blockquote {
+    margin-top: 1.2rem;
+    padding-left: 1rem;
+    border-left: 3px solid;
+    font-style: italic;
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.einstein blockquote { border-color: var(--gold); }
+.hawking blockquote { border-color: var(--blue); }
+
+.formula {
+    color: var(--gold);
+    font-weight: bold;
+}
+
+/* ─── Timeline ─────────────────────────────────────────── */
+.timeline-section {
+    padding: 4rem 0;
+}
+
+.timeline-section h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: var(--green);
+    margin-bottom: 2.5rem;
+}
+
+.timeline {
+    position: relative;
+    max-width: 700px;
+    margin: 0 auto;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--card-border);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2.5rem;
+    padding-left: 1.5rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2.05rem;
+    top: 0.3rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2px solid var(--bg);
+}
+
+.timeline-year {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--green);
+    margin-bottom: 0.3rem;
+}
+
+.timeline-content h3 {
+    font-size: 1rem;
+    color: var(--gold);
+    margin-bottom: 0.3rem;
+}
+
+.timeline-content p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+/* ─── Tools Section ────────────────────────────────────── */
+.tools-section {
+    padding: 4rem 0;
+}
+
+.tools-section h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: var(--green);
+    margin-bottom: 2.5rem;
+}
+
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.tool-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.tool-card h3 {
+    color: var(--green);
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.tool-card p {
+    font-size: 0.85rem;
+    color: #bbb;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.tool-input-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+}
+
+.tool-input-group input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    color: var(--green);
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+[data-theme="light"] .tool-input-group input {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text);
+}
+
+.tool-input-group input:focus {
+    border-color: var(--green);
+}
+
+.tool-btn {
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid var(--green-dim);
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    color: var(--green);
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.tool-btn:hover {
+    background: rgba(0, 255, 65, 0.2);
+}
+
+.tool-result {
+    font-size: 0.85rem;
+    color: var(--gold);
+    min-height: 1.2rem;
+    line-height: 1.5;
+}
+
+.memory-display {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    font-size: 1.2rem;
+    color: var(--green);
+    margin-bottom: 0.8rem;
+    word-break: break-all;
+    min-height: 2.5rem;
+}
+
+[data-theme="light"] .memory-display {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+#memoryInput {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    color: var(--green);
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    margin-bottom: 0.8rem;
+    transition: border-color 0.2s;
+}
+
+[data-theme="light"] #memoryInput {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text);
+}
+
+#memoryInput:focus {
+    border-color: var(--green);
+}
+
+/* ─── Digits Display ───────────────────────────────────── */
+.digits-section {
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.digits-section h2 {
+    font-size: 2rem;
+    color: var(--green);
+    margin-bottom: 1rem;
+}
+
+.copy-btn {
+    display: inline-block;
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 0.5rem 1.5rem;
+    color: var(--green);
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.copy-btn:hover {
+    background: rgba(0, 255, 65, 0.2);
+    border-color: var(--green-dim);
+}
+
+.digits-display {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 2rem;
+    font-size: 1.1rem;
+    line-height: 2;
+    letter-spacing: 0.15em;
+    word-break: break-all;
+    text-align: center;
+    color: var(--green-dim);
+}
+
+.digits-display .digit-dot {
+    color: var(--gold);
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.digits-display .digit-3 {
+    color: var(--green);
+    font-weight: bold;
+    font-size: 1.4rem;
+}
+
+.digits-display .digit-highlight {
+    color: var(--green);
+}
+
+/* ─── Calendar Section ─────────────────────────────────── */
+.calendar-section {
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.calendar-section h2 {
+    font-size: 1.8rem;
+    color: var(--green);
+    margin-bottom: 0.5rem;
+}
+
+.calendar-intro {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.calendar-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.cal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.8rem;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    text-decoration: none;
+    border: 1px solid var(--card-border);
+}
+
+.cal-btn:hover {
+    transform: translateY(-2px);
+}
+
+.google-cal {
+    background: rgba(66, 133, 244, 0.1);
+    color: var(--blue);
+    border-color: rgba(66, 133, 244, 0.3);
+}
+
+.google-cal:hover {
+    background: rgba(66, 133, 244, 0.2);
+}
+
+.ical-btn {
+    background: rgba(0, 255, 65, 0.1);
+    color: var(--green);
+    border-color: rgba(0, 255, 65, 0.2);
+}
+
+.ical-btn:hover {
+    background: rgba(0, 255, 65, 0.2);
+}
+
+.cal-icon {
+    font-size: 1.1rem;
+}
+
+/* ─── Share Section ────────────────────────────────────── */
+.share-section {
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.share-section h2 {
+    font-size: 1.8rem;
+    color: var(--green);
+    margin-bottom: 0.5rem;
+}
+
+.share-intro {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.share-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.share-btn {
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    transition: transform 0.2s, background 0.2s;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+}
+
+.share-btn.twitter {
+    color: #1da1f2;
+    border-color: rgba(29, 161, 242, 0.3);
+}
+
+.share-btn.twitter:hover { background: rgba(29, 161, 242, 0.15); }
+
+.share-btn.whatsapp {
+    color: #25d366;
+    border-color: rgba(37, 211, 102, 0.3);
+}
+
+.share-btn.whatsapp:hover { background: rgba(37, 211, 102, 0.15); }
+
+.share-btn.facebook {
+    color: #4267b2;
+    border-color: rgba(66, 103, 178, 0.3);
+}
+
+.share-btn.facebook:hover { background: rgba(66, 103, 178, 0.15); }
+
+.share-btn.linkedin {
+    color: #0a66c2;
+    border-color: rgba(10, 102, 194, 0.3);
+}
+
+.share-btn.linkedin:hover { background: rgba(10, 102, 194, 0.15); }
+
+.share-btn.copylink {
+    color: var(--green);
+    border-color: var(--card-border);
+}
+
+.share-btn.copylink:hover { background: rgba(0, 255, 65, 0.15); }
+
+/* ─── Footer ───────────────────────────────────────────── */
+footer {
+    text-align: center;
+    padding: 3rem 0 4rem;
+    border-top: 1px solid var(--card-border);
+    margin-top: 2rem;
+}
+
+footer p {
+    color: var(--green-dim);
+    font-size: 0.9rem;
+}
+
+.footer-sub {
+    margin-top: 0.5rem;
+    color: #666 !important;
+    font-size: 0.8rem !important;
+}
+
+.visit-counter {
+    margin-top: 0.8rem;
+    font-size: 0.75rem !important;
+    color: var(--text-dim) !important;
+}
+
+.footer-hint {
+    margin-top: 0.8rem;
+    font-size: 0.7rem !important;
+    color: var(--text-dim) !important;
+    opacity: 0.6;
+}
+
+/* ─── Konami Easter Egg ────────────────────────────────── */
+.konami-active .pi-symbol {
+    animation: konamiSpin 1s linear infinite !important;
+}
+
+@keyframes konamiSpin {
+    from { transform: rotate(0deg) scale(1.2); }
+    to { transform: rotate(360deg) scale(1.2); }
+}
+
+.konami-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card-bg);
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    padding: 2rem 3rem;
+    z-index: 1000;
+    text-align: center;
+    animation: toastIn 0.5s ease;
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.konami-toast h2 {
+    color: var(--gold);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.konami-toast p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* ─── Print Styles ─────────────────────────────────────── */
+@media print {
+    #piMatrix, #confettiCanvas, .theme-toggle, .scroll-top,
+    .navbar, .pi-marquee, .share-section, .calendar-section,
+    .tools-section, .pi-progress-section, .today-digit-section,
+    .footer-hint { display: none !important; }
+
+    body { background: white; color: black; }
+    .content { max-width: 100%; }
+    .hero { padding-top: 2rem; }
+    .pi-symbol { color: #333; text-shadow: none; animation: none; }
+    .hero h1, .facts-section h2, .legends-section h2,
+    .digits-section h2, .formulas-section h2, .approx-section h2,
+    .bases-section h2, .timeline-section h2 { color: #333; }
+
+    .fact-card, .legend-card, .formula-card, .base-card,
+    .approx-table, .digits-display {
+        background: white;
+        border-color: #ccc;
+        color: #333;
+    }
+
+    .fact-card p, .legend-card p, .formula-desc,
+    .timeline-content p { color: #555; }
+    .legend-card blockquote { color: #777; }
+    .fact-card h3 { color: #006f1c; }
+    .digits-display { color: #333; font-size: 0.85rem; }
+}
+
+/* ─── Responsive ───────────────────────────────────────── */
+@media (max-width: 768px) {
+    .pi-symbol { font-size: 5rem; }
+    .hero h1 { font-size: 2rem; letter-spacing: 0.2em; }
+    .hero { padding-top: 5rem; }
+    .time-block { min-width: 70px; padding: 1rem; }
+    .time-value { font-size: 2rem; }
+    .time-separator { font-size: 1.8rem; }
+    .celebration-text { font-size: 1.8rem; }
+    .facts-grid { grid-template-columns: 1fr; }
+    .legends-grid { grid-template-columns: 1fr; }
+    .formulas-grid { grid-template-columns: 1fr; }
+    .bases-grid { grid-template-columns: 1fr; }
+    .tools-grid { grid-template-columns: 1fr; }
+    .today-digit-card { min-width: auto; width: 100%; }
+    .nav-links { display: none; }
+    .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: rgba(10, 10, 15, 0.95);
+        padding: 1rem 2rem;
+        gap: 1rem;
+        border-bottom: 1px solid var(--card-border);
+    }
+    [data-theme="light"] .nav-links.open {
+        background: rgba(240, 240, 245, 0.98);
+    }
+    .nav-menu-btn { display: block; }
+}
+
+@media (max-width: 480px) {
+    .pi-symbol { font-size: 4rem; }
+    .hero h1 { font-size: 1.5rem; }
+    .time-block { min-width: 60px; padding: 0.8rem; }
+    .time-value { font-size: 1.5rem; }
+    .hero-stats { gap: 0.8rem; }
+    .hero-stat { font-size: 0.75rem; padding: 0.2rem 0.6rem; }
+    .calendar-buttons, .share-buttons { flex-direction: column; align-items: center; }
+}

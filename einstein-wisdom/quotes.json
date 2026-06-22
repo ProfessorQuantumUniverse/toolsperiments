@@ -1,0 +1,244 @@
+{
+  "quotes": [
+    {
+      "id": 1,
+      "author": "Albert Einstein",
+      "textDE": "Phantasie ist wichtiger als Wissen, denn Wissen ist begrenzt.",
+      "textEN": "Imagination is more important than knowledge, for knowledge is limited.",
+      "category": "philosophy",
+      "themes": ["philosophy", "curiosity"]
+    },
+    {
+      "id": 2,
+      "author": "Albert Einstein",
+      "textDE": "Das Schönste, was wir erleben können, ist das Geheimnisvolle.",
+      "textEN": "The most beautiful thing we can experience is the mysterious.",
+      "category": "philosophy",
+      "themes": ["philosophy", "curiosity"]
+    },
+    {
+      "id": 3,
+      "author": "Albert Einstein",
+      "textDE": "Zwei Dinge sind unendlich: das Universum und die menschliche Dummheit. Aber bei dem Universum bin ich mir noch nicht ganz sicher.",
+      "textEN": "Two things are infinite: the universe and human stupidity; and I'm not sure about the universe.",
+      "category": "humor",
+      "themes": ["humor", "philosophy"]
+    },
+    {
+      "id": 4,
+      "author": "Albert Einstein",
+      "textDE": "Leben ist wie Fahrradfahren. Um die Balance zu halten, musst du in Bewegung bleiben.",
+      "textEN": "Life is like riding a bicycle. To keep your balance, you must keep moving.",
+      "category": "motivation",
+      "themes": ["motivation", "philosophy"]
+    },
+    {
+      "id": 5,
+      "author": "Albert Einstein",
+      "textDE": "Wenn du es einem Sechsjährigen nicht erklären kannst, hast du es selbst nicht verstanden.",
+      "textEN": "If you can't explain it to a six-year-old, you don't understand it yourself.",
+      "category": "science",
+      "themes": ["science", "philosophy"]
+    },
+    {
+      "id": 6,
+      "author": "Albert Einstein",
+      "textDE": "Die Definition von Wahnsinn ist, immer wieder das Gleiche zu tun und andere Ergebnisse zu erwarten.",
+      "textEN": "Insanity is doing the same thing over and over again and expecting different results.",
+      "category": "philosophy",
+      "themes": ["philosophy", "motivation"]
+    },
+    {
+      "id": 7,
+      "author": "Albert Einstein",
+      "textDE": "Ich habe keine besondere Begabung, sondern bin nur leidenschaftlich neugierig.",
+      "textEN": "I have no special talents. I am only passionately curious.",
+      "category": "curiosity",
+      "themes": ["curiosity", "motivation"]
+    },
+    {
+      "id": 8,
+      "author": "Albert Einstein",
+      "textDE": "Der Mensch erfand die Atombombe, doch keine Maus der Welt würde eine Mausefalle konstruieren.",
+      "textEN": "Man invented the atomic bomb, but no mouse in the world would construct a mousetrap.",
+      "category": "philosophy",
+      "themes": ["philosophy", "humor"]
+    },
+    {
+      "id": 9,
+      "author": "Albert Einstein",
+      "textDE": "Die Wissenschaft ist eine wunderbare Sache, wenn man nicht seinen Lebensunterhalt damit verdienen muss.",
+      "textEN": "Science is a wonderful thing if one does not have to earn one's living at it.",
+      "category": "humor",
+      "themes": ["humor", "science"]
+    },
+    {
+      "id": 10,
+      "author": "Albert Einstein",
+      "textDE": "Persönlichkeiten werden nicht durch schöne Reden geformt, sondern durch Arbeit und eigene Leistung.",
+      "textEN": "Personality is not shaped by beautiful speeches, but by work and one's own achievements.",
+      "category": "motivation",
+      "themes": ["motivation"]
+    },
+    {
+      "id": 11,
+      "author": "Marie Curie",
+      "textDE": "Nichts im Leben ist zu fürchten, es ist nur zu verstehen. Jetzt ist es an der Zeit, mehr zu verstehen, damit wir weniger fürchten.",
+      "textEN": "Nothing in life is to be feared, it is only to be understood. Now is the time to understand more, so that we may fear less.",
+      "category": "science",
+      "themes": ["science", "motivation"]
+    },
+    {
+      "id": 12,
+      "author": "Marie Curie",
+      "textDE": "Man merkt nie, was schon getan wurde, man sieht immer nur, was noch zu tun bleibt.",
+      "textEN": "One never notices what has been done; one can only see what remains to be done.",
+      "category": "motivation",
+      "themes": ["motivation"]
+    },
+    {
+      "id": 13,
+      "author": "Stephen Hawking",
+      "textDE": "Intelligenz ist die Fähigkeit, sich dem Wandel anzupassen.",
+      "textEN": "Intelligence is the ability to adapt to change.",
+      "category": "philosophy",
+      "themes": ["philosophy", "future"]
+    },
+    {
+      "id": 14,
+      "author": "Stephen Hawking",
+      "textDE": "Wir sind nur eine fortgeschrittene Rasse von Affen auf einem kleinen Planeten eines sehr durchschnittlichen Sterns. Aber wir können das Universum verstehen. Das macht uns zu etwas ganz Besonderem.",
+      "textEN": "We are just an advanced breed of monkeys on a minor planet of a very average star. But we can understand the Universe. That makes us something very special.",
+      "category": "philosophy",
+      "themes": ["philosophy", "science"]
+    },
+    {
+      "id": 15,
+      "author": "Carl Sagan",
+      "textDE": "Irgendwo geschieht gerade etwas Unglaubliches, das darauf wartet, entdeckt zu werden.",
+      "textEN": "Somewhere, something incredible is waiting to be known.",
+      "category": "curiosity",
+      "themes": ["curiosity", "science"]
+    },
+    {
+      "id": 16,
+      "author": "Carl Sagan",
+      "textDE": "Die Wissenschaft ist nicht nur kompatibel mit Spiritualität; sie ist eine tiefe Quelle der Spiritualität.",
+      "textEN": "Science is not only compatible with spirituality; it is a profound source of spirituality.",
+      "category": "philosophy",
+      "themes": ["philosophy", "science"]
+    },
+    {
+      "id": 17,
+      "author": "Isaac Newton",
+      "textDE": "Was wir wissen, ist ein Tropfen; was wir nicht wissen, ist ein Ozean.",
+      "textEN": "What we know is a drop, what we don't know is an ocean.",
+      "category": "philosophy",
+      "themes": ["philosophy", "curiosity"]
+    },
+    {
+      "id": 18,
+      "author": "Nikola Tesla",
+      "textDE": "Die Wissenschaft ist nichts anderes als eine Perversion, wenn sie nicht das Wohl der Menschen zum Ziel hat.",
+      "textEN": "Science is but a perversion of itself unless it has as its ultimate goal the betterment of humanity.",
+      "category": "philosophy",
+      "themes": ["philosophy", "future"]
+    },
+    {
+      "id": 19,
+      "author": "Nikola Tesla",
+      "textDE": "Die Gegenwart gehört ihnen, aber die Zukunft, für die ich wirklich gearbeitet habe, gehört mir.",
+      "textEN": "The present is theirs; the future, for which I really worked, is mine.",
+      "category": "future",
+      "themes": ["future", "motivation"]
+    },
+    {
+      "id": 20,
+      "author": "Galileo Galilei",
+      "textDE": "Alle Wahrheiten sind leicht zu verstehen, sobald sie entdeckt sind. Die Kunst besteht darin, sie zu entdecken.",
+      "textEN": "All truths are easy to understand once they are discovered; the point is to discover them.",
+      "category": "science",
+      "themes": ["science", "curiosity"]
+    },
+    {
+      "id": 21,
+      "author": "Richard Feynman",
+      "textDE": "Der erste Grundsatz ist, dass man sich selbst nicht täuschen darf - und man ist am leichtesten zu täuschen.",
+      "textEN": "The first principle is that you must not fool yourself and you are the easiest person to fool.",
+      "category": "philosophy",
+      "themes": ["philosophy", "science"]
+    },
+    {
+      "id": 22,
+      "author": "Richard Feynman",
+      "textDE": "Ich würde lieber Fragen haben, die nicht beantwortet werden können, als Antworten, die nicht hinterfragt werden dürfen.",
+      "textEN": "I would rather have questions that can't be answered than answers that can't be questioned.",
+      "category": "curiosity",
+      "themes": ["curiosity", "philosophy"]
+    },
+    {
+      "id": 23,
+      "author": "Max Planck",
+      "textDE": "Einem ernsthaften Wissenschaftler kann nichts Wünschenswerteres geschehen, als dass er eine von ihm aufgestellte Hypothese widerlegt sieht.",
+      "textEN": "An earnest scientist can wish for nothing more desirable than to see a hypothesis he has put forward refuted.",
+      "category": "science",
+      "themes": ["science", "philosophy"]
+    },
+    {
+      "id": 24,
+      "author": "Werner Heisenberg",
+      "textDE": "Ein Experte ist jemand, der einige der schlimmsten Fehler kennt, die in seinem Fachgebiet gemacht werden können, und der weiß, wie man sie vermeidet.",
+      "textEN": "An expert is someone who knows some of the worst mistakes that can be made in his subject and how to avoid them.",
+      "category": "science",
+      "themes": ["science", "philosophy"]
+    },
+    {
+      "id": 25,
+      "author": "Albert Einstein",
+      "textDE": "Der Horizont vieler Menschen ist ein Kreis mit Radius Null - und das nennen sie ihren Standpunkt.",
+      "textEN": "The horizon of many people is a circle with radius zero - and they call it their point of view.",
+      "category": "humor",
+      "themes": ["humor", "philosophy"]
+    },
+    {
+      "id": 26,
+      "author": "Albert Einstein",
+      "textDE": "Probleme kann man niemals mit derselben Denkweise lösen, durch die sie entstanden sind.",
+      "textEN": "We cannot solve our problems with the same thinking we used when we created them.",
+      "category": "philosophy",
+      "themes": ["philosophy", "motivation"]
+    },
+    {
+      "id": 27,
+      "author": "Albert Einstein",
+      "textDE": "Die Zukunft soll man nicht voraussehen wollen, sondern möglich machen.",
+      "textEN": "You should not try to predict the future, but make it possible.",
+      "category": "future",
+      "themes": ["future", "motivation"]
+    },
+    {
+      "id": 28,
+      "author": "Albert Einstein",
+      "textDE": "Es ist schwieriger, eine vorgefasste Meinung zu zertrümmern als ein Atom.",
+      "textEN": "It is harder to crack prejudice than an atom.",
+      "category": "philosophy",
+      "themes": ["philosophy", "physics"]
+    },
+    {
+      "id": 29,
+      "author": "Albert Einstein",
+      "textDE": "Das Wichtigste ist, nicht aufzuhören zu fragen. Neugier hat ihren eigenen Grund zu existieren.",
+      "textEN": "The important thing is not to stop questioning. Curiosity has its own reason for existing.",
+      "category": "curiosity",
+      "themes": ["curiosity", "motivation"]
+    },
+    {
+      "id": 30,
+      "author": "Albert Einstein",
+      "textDE": "Wenn die meisten sich schon armseliger Kleider und Möbel schämen, wieviel mehr sollten wir uns da erst armseliger Ideen und Weltanschauungen schämen.",
+      "textEN": "If most of us are ashamed of shabby clothes and shoddy furniture, let us be more ashamed of shabby ideas and shoddy philosophies.",
+      "category": "philosophy",
+      "themes": ["philosophy"]
+    }
+  ]
+}

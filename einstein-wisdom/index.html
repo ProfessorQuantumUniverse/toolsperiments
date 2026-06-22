@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Die Weisheit Einsteins | The Wisdom of Einstein</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="stars-background"></div>
+    <div class="particle-container"></div>
+    
+    <header class="header">
+        <div class="header-content">
+            <div class="portrait-container">
+                <div class="portrait-glow"></div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/300px-Albert_Einstein_Head.jpg" 
+                     alt="Albert Einstein" 
+                     class="einstein-portrait">
+            </div>
+            <h1 class="main-title" data-de="Die Weisheit Einsteins" data-en="The Wisdom of Einstein">
+                Die Weisheit Einsteins
+            </h1>
+            <p class="subtitle" data-de="Inspiration aus den Gedanken großer Wissenschaftler" 
+               data-en="Inspiration from the minds of great scientists">
+                Inspiration aus den Gedanken großer Wissenschaftler
+            </p>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="controls-container">
+            <div class="controls-left">
+                <button class="btn btn-random" id="randomQuoteBtn">
+                    <span class="btn-icon">🎲</span>
+                    <span data-de="Zufälliges Zitat" data-en="Random Quote">Zufälliges Zitat</span>
+                </button>
+                
+                <button class="btn btn-language" id="languageToggle">
+                    <span class="btn-icon">🌍</span>
+                    <span id="currentLang">DE</span>
+                </button>
+            </div>
+            
+            <div class="controls-right">
+                <select class="theme-filter" id="themeFilter">
+                    <option value="all" data-de="Alle Themen" data-en="All Topics">Alle Themen</option>
+                    <option value="physics" data-de="Physik" data-en="Physics">Physik</option>
+                    <option value="philosophy" data-de="Philosophie" data-en="Philosophy">Philosophie</option>
+                    <option value="motivation" data-de="Motivation" data-en="Motivation">Motivation</option>
+                    <option value="humor" data-de="Humor" data-en="Humor">Humor</option>
+                    <option value="science" data-de="Wissenschaft" data-en="Science">Wissenschaft</option>
+                    <option value="curiosity" data-de="Neugier" data-en="Curiosity">Neugier</option>
+                    <option value="future" data-de="Zukunft" data-en="Future">Zukunft</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="quote-of-day-container" id="quoteOfDay">
+            <div class="qod-badge" data-de="Zitat des Tages" data-en="Quote of the Day">Zitat des Tages</div>
+            <div class="quote-card quote-of-day-card">
+                <div class="quote-content">
+                    <p class="quote-text" id="qodText"></p>
+                    <div class="quote-author">
+                        <span id="qodAuthor"></span>
+                    </div>
+                </div>
+                <div class="quote-actions">
+                    <button class="action-btn" id="shareQod" title="Teilen">
+                        <span>📤</span>
+                    </button>
+                    <button class="action-btn" id="favoriteQod" title="Zu Favoriten hinzufügen">
+                        <span>❤️</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="quotes-grid" id="quotesGrid">
+            <!-- Quotes will be dynamically inserted here -->
+        </div>
+
+        <div class="favorites-section" id="favoritesSection">
+            <h2 class="section-title" data-de="Meine Favoriten" data-en="My Favorites">Meine Favoriten</h2>
+            <div class="favorites-grid" id="favoritesGrid">
+                <p class="empty-message" data-de="Keine Favoriten gespeichert" data-en="No favorites saved">
+                    Keine Favoriten gespeichert
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p data-de="Erstellt mit Begeisterung für Wissenschaft und Inspiration" 
+           data-en="Created with passion for science and inspiration">
+            Erstellt mit Begeisterung für Wissenschaft und Inspiration
+        </p>
+        <p>&copy; 2025 ProfessorQuantumUniverse</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

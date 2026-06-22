@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>π Day — March 14 | 3.14</title>
+    <meta name="description" content="Celebrate Pi Day on March 14! Countdown timer, 1000 digits of π, fun facts, Einstein & Hawking tributes, and interactive pi tools.">
+
+    <!-- Open Graph (WhatsApp, Facebook, LinkedIn, etc.) -->
+    <meta property="og:title" content="🥧 π Day — March 14 | 3.14">
+    <meta property="og:description" content="🎉 Celebrate the most irrational day of the year! Countdown to Pi Day, explore 1000 digits of π, fun facts about Einstein & Hawking, and more.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://professorquantumuniverse.github.io/Pi-Day/">
+    <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Pi-symbol.svg/1200px-Pi-symbol.svg.png">
+    <meta property="og:site_name" content="Pi Day — 3.14">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="🥧 π Day — March 14 | 3.14">
+    <meta name="twitter:description" content="🎉 The most irrational day of the year! Countdown, 1000 digits of π, Einstein & Hawking tributes, pi tools & more.">
+    <meta name="twitter:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Pi-symbol.svg/1200px-Pi-symbol.svg.png">
+
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#0a0a0f" id="themeColorMeta">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>π</text></svg>">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Matrix-style Pi digit rain canvas (background) -->
+    <canvas id="piMatrix"></canvas>
+
+    <!-- Confetti canvas (Pi Day celebration) -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Theme toggle -->
+    <button class="theme-toggle" id="themeToggle" title="Toggle light/dark theme" aria-label="Toggle theme">🌙</button>
+
+    <!-- Scroll-to-top button -->
+    <button class="scroll-top" id="scrollTop" title="Back to top" aria-label="Scroll to top">↑</button>
+
+    <!-- Navigation bar -->
+    <nav class="navbar" id="navbar">
+        <span class="nav-brand">π</span>
+        <div class="nav-links">
+            <a href="#hero">Home</a>
+            <a href="#countdownSection">Countdown</a>
+            <a href="#factsSection">Facts</a>
+            <a href="#legendsSection">Legends</a>
+            <a href="#toolsSection">Tools</a>
+            <a href="#digitsSection">Digits</a>
+        </div>
+        <button class="nav-menu-btn" id="navMenuBtn" aria-label="Toggle menu">☰</button>
+    </nav>
+
+    <!-- Main content overlay -->
+    <div class="content">
+
+        <!-- Hero Section -->
+        <header class="hero" id="hero">
+            <div class="pi-symbol">π</div>
+            <h1>Pi Day</h1>
+            <p class="date-badge">March 14 &mdash; 3 / 14 &mdash; 3.14</p>
+            <div class="hero-stats" id="heroStats">
+                <!-- Filled by JS: visit count, today's pi digit, etc. -->
+            </div>
+        </header>
+
+        <!-- Pi Progress Bar -->
+        <div class="pi-progress-section" id="piProgressSection">
+            <div class="pi-progress-label">
+                <span>Progress to Pi Day</span>
+                <span id="piProgressPercent">0%</span>
+            </div>
+            <div class="pi-progress-bar">
+                <div class="pi-progress-fill" id="piProgressFill"></div>
+            </div>
+        </div>
+
+        <!-- Countdown Section -->
+        <section class="countdown-section" id="countdownSection">
+            <h2 id="countdownTitle">Countdown to Pi Day</h2>
+            <div class="countdown" id="countdown">
+                <div class="time-block">
+                    <span class="time-value" id="days">000</span>
+                    <span class="time-label">Days</span>
+                </div>
+                <div class="time-separator">:</div>
+                <div class="time-block">
+                    <span class="time-value" id="hours">00</span>
+                    <span class="time-label">Hours</span>
+                </div>
+                <div class="time-separator">:</div>
+                <div class="time-block">
+                    <span class="time-value" id="minutes">00</span>
+                    <span class="time-label">Minutes</span>
+                </div>
+                <div class="time-separator">:</div>
+                <div class="time-block">
+                    <span class="time-value" id="seconds">00</span>
+                    <span class="time-label">Seconds</span>
+                </div>
+            </div>
+            <div class="celebration hidden" id="celebration">
+                <div class="celebration-text">🎉 It's Pi Day! 🎉</div>
+                <p class="celebration-sub">Happy 3.14159265358979323846…</p>
+            </div>
+        </section>
+
+        <!-- Today's Pi Digit -->
+        <section class="today-digit-section" id="todayDigitSection">
+            <div class="today-digit-card">
+                <h3>📅 Today's Pi Digit</h3>
+                <p class="today-digit-info">Day <span id="dayOfYear">—</span> of the year → Digit #<span id="digitIndex">—</span> of π is</p>
+                <div class="today-digit-value" id="todayDigitValue">—</div>
+            </div>
+        </section>
+
+        <!-- Pi Digits Marquee -->
+        <div class="pi-marquee">
+            <div class="pi-marquee-inner" id="piMarquee"></div>
+        </div>
+
+        <!-- Pi Facts Section -->
+        <section class="facts-section" id="factsSection">
+            <h2>π Facts</h2>
+            <div class="facts-grid">
+                <div class="fact-card">
+                    <div class="fact-icon">∞</div>
+                    <h3>Infinite & Irrational</h3>
+                    <p>Pi is an irrational number — its decimal representation never ends and never falls into a permanent repeating pattern. It has been computed to over 100 trillion digits.</p>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-icon">🏛️</div>
+                    <h3>Ancient Origins</h3>
+                    <p>The ancient Babylonians approximated π as 3.125, while the Egyptians used 3.1605. Archimedes of Syracuse (287–212 BC) was the first to rigorously approximate π between 3<sup>10</sup>⁄<sub>71</sub> and 3<sup>1</sup>⁄<sub>7</sub>.</p>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-icon">📐</div>
+                    <h3>Circle Constant</h3>
+                    <p>Pi (π) is the ratio of a circle's circumference to its diameter. No matter the size of the circle, this ratio is always the same: 3.14159…</p>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-icon">🔤</div>
+                    <h3>The Symbol</h3>
+                    <p>The Greek letter π was first used by Welsh mathematician William Jones in 1706. It was later popularised by the great Leonhard Euler in 1737.</p>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-icon">🧠</div>
+                    <h3>Memory Champion</h3>
+                    <p>The world record for memorising digits of π is held by Rajveer Meena (India), who recited 70,000 decimal places in 2015 — taking nearly 10 hours!</p>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-icon">🎲</div>
+                    <h3>Hidden Everywhere</h3>
+                    <p>Pi appears in many formulas across physics, engineering, and probability — from Heisenberg's uncertainty principle to the normal distribution (bell curve) and Einstein's field equations.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Famous Pi Formulas -->
+        <section class="formulas-section" id="formulasSection">
+            <h2>Famous π Formulas</h2>
+            <div class="formulas-grid">
+                <div class="formula-card">
+                    <div class="formula-name">Euler's Identity</div>
+                    <div class="formula-expr">e<sup>iπ</sup> + 1 = 0</div>
+                    <p class="formula-desc">Often called the most beautiful equation in mathematics.</p>
+                </div>
+                <div class="formula-card">
+                    <div class="formula-name">Leibniz Formula</div>
+                    <div class="formula-expr">π/4 = 1 − 1/3 + 1/5 − 1/7 + …</div>
+                    <p class="formula-desc">An infinite series that converges (slowly) to π/4.</p>
+                </div>
+                <div class="formula-card">
+                    <div class="formula-name">Basel Problem (Euler)</div>
+                    <div class="formula-expr">π²/6 = 1 + 1/4 + 1/9 + 1/16 + …</div>
+                    <p class="formula-desc">Sum of reciprocals of perfect squares equals π²/6.</p>
+                </div>
+                <div class="formula-card">
+                    <div class="formula-name">Area of a Circle</div>
+                    <div class="formula-expr">A = πr²</div>
+                    <p class="formula-desc">The fundamental formula relating π to the area of a circle.</p>
+                </div>
+                <div class="formula-card">
+                    <div class="formula-name">Gaussian Integral</div>
+                    <div class="formula-expr">∫<sub>-∞</sub><sup>∞</sup> e<sup>-x²</sup> dx = √π</div>
+                    <p class="formula-desc">Pi appears unexpectedly in probability and statistics.</p>
+                </div>
+                <div class="formula-card">
+                    <div class="formula-name">Wallis Product</div>
+                    <div class="formula-expr">π/2 = (2·2·4·4·6·6…) / (1·3·3·5·5·7…)</div>
+                    <p class="formula-desc">An infinite product representation discovered in 1656.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pi Approximations -->
+        <section class="approx-section" id="approxSection">
+            <h2>π Approximations Through History</h2>
+            <div class="approx-table-wrap">
+                <table class="approx-table">
+                    <thead>
+                        <tr>
+                            <th>Approximation</th>
+                            <th>Value</th>
+                            <th>Error</th>
+                            <th>Origin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>3</td><td>3.000000</td><td>4.51%</td><td>Bible (1 Kings 7:23)</td></tr>
+                        <tr><td>25/8</td><td>3.125000</td><td>0.53%</td><td>Babylonia (~1900 BC)</td></tr>
+                        <tr><td>256/81</td><td>3.160494</td><td>0.60%</td><td>Egypt (~1650 BC)</td></tr>
+                        <tr><td>22/7</td><td>3.142857</td><td>0.04%</td><td>Archimedes (~250 BC)</td></tr>
+                        <tr><td>355/113</td><td>3.141593</td><td>0.000008%</td><td>Zu Chongzhi (~480 AD)</td></tr>
+                        <tr><td>π</td><td>3.141593…</td><td>0</td><td>Exact (irrational)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Pi in Different Bases -->
+        <section class="bases-section" id="basesSection">
+            <h2>π in Different Number Bases</h2>
+            <div class="bases-grid">
+                <div class="base-card">
+                    <div class="base-name">Binary (Base 2)</div>
+                    <div class="base-value">11.00100100001111…</div>
+                </div>
+                <div class="base-card">
+                    <div class="base-name">Octal (Base 8)</div>
+                    <div class="base-value">3.11037552421…</div>
+                </div>
+                <div class="base-card">
+                    <div class="base-name">Decimal (Base 10)</div>
+                    <div class="base-value">3.14159265358…</div>
+                </div>
+                <div class="base-card">
+                    <div class="base-name">Duodecimal (Base 12)</div>
+                    <div class="base-value">3.18480949…</div>
+                </div>
+                <div class="base-card">
+                    <div class="base-name">Hexadecimal (Base 16)</div>
+                    <div class="base-value">3.243F6A8885…</div>
+                </div>
+                <div class="base-card">
+                    <div class="base-name">Base 36</div>
+                    <div class="base-value">3.53I5AB8P5…</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Legends Section -->
+        <section class="legends-section" id="legendsSection">
+            <h2>March 14 — A Day of Legends</h2>
+            <p class="legends-intro">Pi Day doesn't just celebrate mathematics — it shares its date with two of the greatest scientific minds in history.</p>
+            <div class="legends-grid">
+                <div class="legend-card einstein">
+                    <div class="legend-emoji">🌌</div>
+                    <h3>Albert Einstein</h3>
+                    <p class="legend-date">★ Born March 14, 1879 — Ulm, Germany</p>
+                    <p class="legend-age" id="einsteinAge"></p>
+                    <p>The father of the theory of relativity, Einstein revolutionised our understanding of space, time, and the universe. His equation <span class="formula">E = mc²</span> became the most famous formula in all of physics. He was awarded the Nobel Prize in Physics in 1921.</p>
+                    <blockquote>"Pure mathematics is, in its way, the poetry of logical ideas."</blockquote>
+                </div>
+                <div class="legend-card hawking">
+                    <div class="legend-emoji">🕳️</div>
+                    <h3>Stephen Hawking</h3>
+                    <p class="legend-date">✝ Died March 14, 2018 — Cambridge, England</p>
+                    <p class="legend-age" id="hawkingYears"></p>
+                    <p>A visionary theoretical physicist and cosmologist, Hawking's work on black holes and the origins of the universe inspired millions. Despite being diagnosed with ALS at 21, he lived to 76 and authored the best-selling <em>A Brief History of Time</em>.</p>
+                    <blockquote>"However difficult life may seem, there is always something you can do and succeed at."</blockquote>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pi Day History Timeline -->
+        <section class="timeline-section" id="timelineSection">
+            <h2>Pi Day History</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-year">1988</div>
+                    <div class="timeline-content">
+                        <h3>First Pi Day Celebration</h3>
+                        <p>Physicist Larry Shaw organized the first Pi Day at the San Francisco Exploratorium, with staff and public marching around in circles and eating fruit pies.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2009</div>
+                    <div class="timeline-content">
+                        <h3>Official U.S. Recognition</h3>
+                        <p>The U.S. House of Representatives passed a non-binding resolution (H.Res. 224) recognizing March 14 as National Pi Day.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2015</div>
+                    <div class="timeline-content">
+                        <h3>Super Pi Day</h3>
+                        <p>March 14, 2015 (3/14/15) was called "Super Pi Day" because the date matched the first five digits of π (3.1415). At 9:26:53, the time aligned with 10 digits!</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2019</div>
+                    <div class="timeline-content">
+                        <h3>UNESCO International Day</h3>
+                        <p>UNESCO proclaimed March 14 as the International Day of Mathematics, officially making Pi Day a worldwide celebration.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2024</div>
+                    <div class="timeline-content">
+                        <h3>100+ Trillion Digits</h3>
+                        <p>Pi has been computed to over 100 trillion decimal places, pushing the limits of modern computing and storage technology.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Tools Section -->
+        <section class="tools-section" id="toolsSection">
+            <h2>π Tools</h2>
+            <div class="tools-grid">
+
+                <!-- Pi Digit Search -->
+                <div class="tool-card">
+                    <h3>🔍 Find a Number in π</h3>
+                    <p>Search for any number sequence (birthday, lucky number, etc.) within the first 1,000 digits of π.</p>
+                    <div class="tool-input-group">
+                        <input type="text" id="piSearchInput" placeholder="e.g. 2653 or 0314" maxlength="10" aria-label="Search digits in pi">
+                        <button id="piSearchBtn" class="tool-btn">Search</button>
+                    </div>
+                    <div class="tool-result" id="piSearchResult"></div>
+                </div>
+
+                <!-- Age in Pi Years -->
+                <div class="tool-card">
+                    <h3>🎂 Your Age in π Years</h3>
+                    <p>Enter your birth year to calculate your age in "Pi Years" (1 Pi Year = π regular years ≈ 3.14159 years).</p>
+                    <div class="tool-input-group">
+                        <input type="number" id="piAgeInput" placeholder="e.g. 1990" min="1900" max="2030" aria-label="Birth year">
+                        <button id="piAgeBtn" class="tool-btn">Calculate</button>
+                    </div>
+                    <div class="tool-result" id="piAgeResult"></div>
+                </div>
+
+                <!-- Pi Memory Challenge -->
+                <div class="tool-card">
+                    <h3>🧠 Pi Memory Challenge</h3>
+                    <p>How many digits of π can you type from memory? Start typing after "3." and see how far you get!</p>
+                    <div class="memory-display" id="memoryDisplay">3.</div>
+                    <input type="text" id="memoryInput" placeholder="Start typing digits…" maxlength="100" aria-label="Type pi digits from memory" autocomplete="off">
+                    <div class="tool-result" id="memoryResult"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- First 1000 digits of Pi -->
+        <section class="digits-section" id="digitsSection">
+            <h2>The First 1,000 Digits of π</h2>
+            <button class="copy-btn" id="copyDigitsBtn" title="Copy digits to clipboard">📋 Copy Digits</button>
+            <div class="digits-display" id="piDigits"></div>
+        </section>
+
+        <!-- Calendar Section -->
+        <section class="calendar-section" id="calendarSection">
+            <h2>📅 Add Pi Day to Your Calendar</h2>
+            <p class="calendar-intro">Never miss Pi Day again! Add it to your calendar now.</p>
+            <div class="calendar-buttons">
+                <a href="#" id="googleCalBtn" class="cal-btn google-cal" target="_blank" rel="noopener noreferrer">
+                    <span class="cal-icon">📅</span> Google Calendar
+                </a>
+                <button id="icalBtn" class="cal-btn ical-btn">
+                    <span class="cal-icon">⬇️</span> Download .ics (iCal)
+                </button>
+            </div>
+        </section>
+
+        <!-- Share Section -->
+        <section class="share-section" id="shareSection">
+            <h2>📤 Share Pi Day</h2>
+            <p class="share-intro">Spread the love for π!</p>
+            <div class="share-buttons">
+                <button class="share-btn twitter" id="shareTwitter" title="Share on X (Twitter)">
+                    𝕏 Twitter
+                </button>
+                <button class="share-btn whatsapp" id="shareWhatsApp" title="Share on WhatsApp">
+                    💬 WhatsApp
+                </button>
+                <button class="share-btn facebook" id="shareFacebook" title="Share on Facebook">
+                    📘 Facebook
+                </button>
+                <button class="share-btn linkedin" id="shareLinkedIn" title="Share on LinkedIn">
+                    💼 LinkedIn
+                </button>
+                <button class="share-btn copylink" id="shareCopyLink" title="Copy link">
+                    🔗 Copy Link
+                </button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>π = 3.14159265358979323846264338327950288…</p>
+            <p class="footer-sub">Made with 🥧 for Pi Day</p>
+            <p class="visit-counter" id="visitCounter"></p>
+            <p class="footer-hint">💡 Try the Konami Code: ↑↑↓↓←→←→BA</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

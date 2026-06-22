@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>toolsperiments — kleine Web-Experimente</title>
+<meta name="description" content="Eine Sammlung kleiner Web-Tools, Demos und Experimente von ProfessorQuantumUniverse.">
+<style>
+  :root{
+    --bg:#0a0e14; --bg2:#111722; --card:#161d2b; --card-h:#1d2738;
+    --line:#26304a; --text:#e6edf3; --muted:#8b98ad; --accent:#5cc8ff; --accent2:#7c5cff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:radial-gradient(1200px 600px at 20% -10%,#16203a 0%,var(--bg) 55%) fixed,var(--bg);
+    color:var(--text);min-height:100vh;padding:48px 20px 80px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  header{margin-bottom:40px}
+  .logo{font-family:'Consolas',monospace;font-size:14px;color:var(--accent);letter-spacing:2px;margin-bottom:14px}
+  h1{font-size:clamp(34px,6vw,56px);font-weight:800;line-height:1.05;
+     background:linear-gradient(120deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:17px;margin-top:14px;max-width:620px;line-height:1.6}
+  .count{display:inline-block;margin-top:18px;font-family:'Consolas',monospace;font-size:13px;
+         color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 14px}
+  .section{margin-top:44px}
+  .section h2{font-size:13px;text-transform:uppercase;letter-spacing:3px;color:var(--muted);
+              margin-bottom:18px;font-weight:700}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+  a.card{
+    display:flex;flex-direction:column;gap:10px;text-decoration:none;color:inherit;
+    background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;
+    transition:transform .15s ease,background .15s ease,border-color .15s ease;
+  }
+  a.card:hover{transform:translateY(-4px);background:var(--card-h);border-color:var(--accent)}
+  .ico{font-size:30px;line-height:1}
+  .card h3{font-size:18px;font-weight:700}
+  .card p{color:var(--muted);font-size:14px;line-height:1.5;flex:1}
+  .tag{align-self:flex-start;font-family:'Consolas',monospace;font-size:11px;color:var(--accent);
+       background:rgba(92,200,255,.1);border:1px solid rgba(92,200,255,.25);border-radius:6px;padding:3px 8px}
+  footer{margin-top:60px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:24px;line-height:1.7}
+  footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">~/ toolsperiments</div>
+    <h1>Werkstatt der Web-Experimente</h1>
+    <p class="sub">Eine gesammelte Spielwiese kleiner Tools, Demos und Experimente — vom Pi-Day-Countdown bis zur 3D-Reise durch ein Wurmloch. Klick ein Kärtchen, um es zu öffnen.</p>
+    <span class="count" id="count">11 Experimente</span>
+  </header>
+
+  <div class="section">
+    <h2>🔭 Space &amp; Science</h2>
+    <div class="grid">
+      <a class="card" href="./interstellar/"><div class="ico">🌌</div><h3>Interstellar</h3><p>Immersive 3D-Reise mit Gargantua- und Wurmloch-Shadern.</p><span class="tag">webgl</span></a>
+      <a class="card" href="./aurora-cycles/"><div class="ico">🌞</div><h3>Aurora Voyager</h3><p>Sonnenzyklus &amp; Live-Tracking von Polarlichtern.</p><span class="tag">space-weather</span></a>
+      <a class="card" href="./cool-globe/"><div class="ico">🌍</div><h3>Sci-Fi Global Monitor</h3><p>3D-Globus-Experiment auf Basis von globe.gl.</p><span class="tag">globe.gl</span></a>
+      <a class="card" href="./pi-day/"><div class="ico">π</div><h3>π Day</h3><p>Countdown, 1000 Stellen von π und kleine Pi-Spielereien.</p><span class="tag">math</span></a>
+      <a class="card" href="./einstein-wisdom/"><div class="ico">🧠</div><h3>Weisheit Einsteins</h3><p>Eine Sammlung von Zitaten Albert Einsteins.</p><span class="tag">quotes</span></a>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🎮 Just for Fun</h2>
+    <div class="grid">
+      <a class="card" href="./aggressive-christmas/"><div class="ico">🎄</div><h3>Aggressive Christmas</h3><p>Ein etwas aggressiver Weihnachts-Countdown.</p><span class="tag">fun</span></a>
+      <a class="card" href="./minion-world/"><div class="ico">🍌</div><h3>Minion World</h3><p>Das verrückteste Minion-Fandom als Webseite.</p><span class="tag">fun</span></a>
+      <a class="card" href="./hacking-simulator/"><div class="ico">💻</div><h3>Hacking Simulator</h3><p>Spaßiger „Ultra-Realism"-Hacking-Simulator.</p><span class="tag">fun</span></a>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🛠️ Tools &amp; Utilities</h2>
+    <div class="grid">
+      <a class="card" href="./AiComparison/"><div class="ico">🤖</div><h3>AI-Abo-Vergleich</h3><p>Entscheidungshilfe für KI-Abos im Vergleich.</p><span class="tag">tool</span></a>
+      <a class="card" href="./internetDeepDive/"><div class="ico">🔎</div><h3>Internet Deep Dive</h3><p>Google-Dorking Recon-Assistent (OSINT).</p><span class="tag">osint</span></a>
+      <a class="card" href="./fastlane-checker/"><div class="ico">🧩</div><h3>Fastlane Checker</h3><p>Prüft die F-Droid-Fastlane-Ordnerstruktur.</p><span class="tag">dev</span></a>
+    </div>
+  </div>
+
+  <footer>
+    Teil von <a href="https://github.com/ProfessorQuantumUniverse/toolsperiments">github.com/ProfessorQuantumUniverse/toolsperiments</a><br>
+    Jedes Unterverzeichnis ist ein eigenständiges Mini-Experiment. Beiträge &amp; Ideen willkommen.
+  </footer>
+</div>
+</body>
+</html>

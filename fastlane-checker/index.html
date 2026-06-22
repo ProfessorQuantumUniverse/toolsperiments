@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F-Droid Fastlane Struktur Prüfer</title>
+    <!-- Pico.css für modernes Aussehen & Dark Mode Support -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+    <style>
+        /* Zusätzliche Stile */
+        body {
+            padding: 2rem;
+        }
+        .hidden {
+            display: none;
+        }
+        #results article {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid var(--pico-card-border-color);
+            border-radius: var(--pico-card-border-radius);
+            background-color: var(--pico-card-background-color);
+        }
+        #results h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--pico-muted-border-color);
+            padding-bottom: 0.5rem;
+        }
+        #results pre {
+            background-color: var(--pico-code-background-color);
+            color: var(--pico-code-color);
+            padding: 0.8em;
+            border-radius: var(--pico-border-radius);
+            overflow-x: auto;
+            white-space: pre-wrap; /* Wichtig für lange Beschreibungen */
+            word-wrap: break-word;
+        }
+        #results img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--pico-muted-border-color);
+        }
+        .screenshots-container img {
+            max-width: 150px; /* Kleinere Thumbnails für Screenshots */
+            margin-right: 5px;
+            display: inline-block;
+            vertical-align: top;
+        }
+        .file-entry {
+            margin-bottom: 0.8rem;
+            padding-left: 1rem;
+            border-left: 3px solid var(--pico-primary);
+        }
+        .file-entry strong {
+             display: block;
+             margin-bottom: 0.3rem;
+        }
+        .error {
+            color: var(--pico-color-invalid);
+            font-weight: bold;
+        }
+        .loading-indicator {
+            margin-top: 1rem;
+        }
+         /* Kleine Icons für Status */
+        .status-ok::before { content: '✔️ '; color: green; }
+        .status-warn::before { content: '⚠️ '; color: orange; }
+        .status-error::before { content: '❌ '; color: red; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1>F-Droid Fastlane Struktur Prüfer</h1>
+            <p>Gib die URL zu deinem F-Droid App GitHub Repository ein, um die `fastlane/metadata/android` Struktur zu überprüfen und die Inhalte anzuzeigen.</p>
+        </header>
+
+        <form id="repo-form">
+            <label for="repo-url">GitHub Repository URL:</label>
+            <input type="url" id="repo-url" name="repo-url" placeholder="z.B. https://github.com/YourUsername/YourAppRepo" required>
+            <button type="submit">Repo prüfen</button>
+        </form>
+
+        <div id="loading" class="hidden loading-indicator">
+            <p><progress indeterminate></progress> Daten werden von GitHub geladen...</p>
+        </div>
+
+        <div id="error-message" class="error hidden"></div>
+
+        <section id="results"></section>
+    </main>
+
+    <script>
+        const repoForm = document.getElementById('repo-form');
+        const repoUrlInput = document.getElementById('repo-url');
+        const loadingIndicator = document.getElementById('loading');
+        const errorMessageDiv = document.getElementById('error-message');
+        const resultsDiv = document.getElementById('results');
+
+        const GITHUB_API_BASE = 'https://api.github.com/repos';
+        const FASTLANE_PATH = 'fastlane/metadata/android';
+
+        repoForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            clearMessages();
+            resultsDiv.innerHTML = ''; // Clear previous results
+            loadingIndicator.classList.remove('hidden');
+
+            const repoUrl = repoUrlInput.value.trim();
+            const repoInfo = parseGitHubUrl(repoUrl);
+
+            if (!repoInfo) {
+                showError('Ungültige GitHub Repository URL.');
+                loadingIndicator.classList.add('hidden');
+                return;
+            }
+
+            const { owner, repo } = repoInfo;
+
+            try {
+                // 1. Check if fastlane/metadata/android exists
+                const locales = await fetchRepoContents(owner, repo, FASTLANE_PATH);
+
+                if (!Array.isArray(locales)) {
+                     // If the path itself doesn't exist, fetchRepoContents returns an error object
+                     if (locales.error && locales.status === 404) {
+                        showError(`Das Verzeichnis '${FASTLANE_PATH}' wurde im Repository nicht gefunden. Stelle sicher, dass es existiert.`);
+                     } else {
+                        showError(`Fehler beim Abrufen des Verzeichnisses '${FASTLANE_PATH}'. (${locales.error || 'Unbekannter Fehler'})`);
+                     }
+                     loadingIndicator.classList.add('hidden');
+                     return;
+                }
+
+                resultsDiv.innerHTML += `<p class="status-ok">Basisverzeichnis <code>${FASTLANE_PATH}</code> gefunden.</p>`;
+
+                // Filter out files, only process directories (locales)
+                const localeDirs = locales.filter(item => item.type === 'dir');
+
+                if (localeDirs.length === 0) {
+                    resultsDiv.innerHTML += `<p class="status-warn">Keine Sprachverzeichnisse (z.B. 'en-US', 'de-DE') unterhalb von <code>${FASTLANE_PATH}</code> gefunden.</p>`;
+                } else {
+                     resultsDiv.innerHTML += `<h3>Gefundene Sprachen (${localeDirs.length}):</h3>`;
+                }
+
+                // 2. Process each locale directory
+                for (const localeDir of localeDirs) {
+                    await processLocaleDirectory(owner, repo, localeDir.name, localeDir.path);
+                }
+
+            } catch (error) {
+                console.error('Fehler:', error);
+                showError(`Ein Fehler ist aufgetreten: ${error.message}. Überprüfe die Browser-Konsole für Details.`);
+                // Check for rate limiting specifically
+                 if (error.message.includes('API rate limit exceeded')) {
+                     showError('GitHub API Rate Limit überschritten. Bitte warte eine Weile und versuche es erneut, oder verwende einen GitHub API Token (nicht in dieser Version implementiert).');
+                 }
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        });
+
+        function parseGitHubUrl(url) {
+            try {
+                const parsedUrl = new URL(url);
+                if (parsedUrl.hostname !== 'github.com') {
+                    return null;
+                }
+                const pathParts = parsedUrl.pathname.split('/').filter(part => part.length > 0);
+                if (pathParts.length >= 2) {
+                    return { owner: pathParts[0], repo: pathParts[1].replace('.git', '') };
+                }
+                return null;
+            } catch (e) {
+                return null; // Invalid URL
+            }
+        }
+
+        async function fetchGitHubAPI(url) {
+            const response = await fetch(url, {
+                headers: {
+                    // 'Authorization': 'token YOUR_GITHUB_TOKEN' // Optional: Add token for higher rate limits
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            if (!response.ok) {
+                 const errorData = await response.json().catch(() => ({ message: response.statusText })); // Try to get error message from body
+                console.error(`GitHub API Fehler (${response.status}): ${errorData.message}`);
+                 // Return an object indicating error, useful for checking 404s specifically
+                return { error: errorData.message || `HTTP ${response.status}`, status: response.status };
+            }
+            return response.json();
+        }
+
+        async function fetchRepoContents(owner, repo, path = '') {
+            const apiUrl = `${GITHUB_API_BASE}/${owner}/${repo}/contents/${path}`;
+            return await fetchGitHubAPI(apiUrl);
+        }
+
+        async function fetchFileContent(url) {
+             // Use a simple fetch for the download_url, assuming it's text
+             try {
+                 const response = await fetch(url);
+                 if (!response.ok) {
+                     console.warn(`Konnte Dateiinhalt von ${url} nicht laden: ${response.statusText}`);
+                     return `[Fehler beim Laden: ${response.statusText}]`;
+                 }
+                 // Limit content length displayed slightly to avoid huge blobs
+                 const text = await response.text();
+                 return text;
+             } catch (error) {
+                  console.warn(`Netzwerkfehler beim Laden von ${url}: ${error.message}`);
+                 return `[Netzwerkfehler beim Laden]`;
+             }
+        }
+
+       async function processLocaleDirectory(owner, repo, locale, path) {
+            const article = document.createElement('article');
+            article.innerHTML = `<h3>Sprache: ${locale}</h3>`;
+            resultsDiv.appendChild(article);
+
+            const items = await fetchRepoContents(owner, repo, path);
+            if (!Array.isArray(items)) {
+                 article.innerHTML += `<p class="status-error">Fehler beim Laden der Inhalte für ${locale}: ${items.error || 'Unbekannter Fehler'}</p>`;
+                 return;
+            }
+
+            const files = items.filter(item => item.type === 'file');
+            const dirs = items.filter(item => item.type === 'dir');
+
+            // --- Text Files ---
+            const textFiles = ['title.txt', 'short_description.txt', 'full_description.txt'];
+            for (const filename of textFiles) {
+                const file = files.find(f => f.name === filename);
+                const entryDiv = document.createElement('div');
+                entryDiv.classList.add('file-entry');
+                if (file) {
+                    entryDiv.classList.add('status-ok');
+                    entryDiv.innerHTML = `<strong>${filename}</strong>`;
+                    const content = await fetchFileContent(file.download_url);
+                    const pre = document.createElement('pre');
+                    pre.textContent = content;
+                    entryDiv.appendChild(pre);
+                } else {
+                    entryDiv.classList.add('status-warn');
+                    entryDiv.innerHTML = `<strong>${filename}</strong><p><i>Nicht gefunden</i></p>`;
+                }
+                article.appendChild(entryDiv);
+            }
+
+             // --- Changelogs ---
+             const changelogsDir = dirs.find(d => d.name === 'changelogs');
+             const changelogsDiv = document.createElement('div');
+             changelogsDiv.classList.add('file-entry');
+             changelogsDiv.innerHTML = `<strong>changelogs/</strong>`;
+             if (changelogsDir) {
+                 changelogsDiv.classList.add('status-ok');
+                 const changelogFiles = await fetchRepoContents(owner, repo, changelogsDir.path);
+                 if (Array.isArray(changelogFiles)) {
+                     if (changelogFiles.length === 0) {
+                         changelogsDiv.innerHTML += `<p><i>Keine Changelog-Dateien gefunden (z.B. 123.txt)</i></p>`;
+                     } else {
+                         for (const changelogFile of changelogFiles.filter(f => f.type === 'file' && f.name.endsWith('.txt'))) {
+                             const content = await fetchFileContent(changelogFile.download_url);
+                             const pre = document.createElement('pre');
+                             pre.textContent = `--- ${changelogFile.name} ---\n${content}`;
+                             changelogsDiv.appendChild(pre);
+                         }
+                     }
+                 } else {
+                      changelogsDiv.innerHTML += `<p class="status-error">Fehler beim Laden der Changelogs: ${changelogFiles.error || 'Unbekannter Fehler'}</p>`;
+                 }
+             } else {
+                 changelogsDiv.classList.add('status-warn');
+                 changelogsDiv.innerHTML += `<p><i>Verzeichnis nicht gefunden</i></p>`;
+             }
+             article.appendChild(changelogsDiv);
+
+            // --- Images ---
+            const imagesDir = dirs.find(d => d.name === 'images');
+            const imagesDiv = document.createElement('div');
+            imagesDiv.classList.add('file-entry');
+            imagesDiv.innerHTML = `<strong>images/</strong>`;
+            if (imagesDir) {
+                imagesDiv.classList.add('status-ok');
+                await processImagesDirectory(owner, repo, imagesDir.path, imagesDiv);
+            } else {
+                 imagesDiv.classList.add('status-warn');
+                 imagesDiv.innerHTML += `<p><i>Verzeichnis nicht gefunden</i></p>`;
+            }
+            article.appendChild(imagesDiv);
+        }
+
+
+        async function processImagesDirectory(owner, repo, path, parentElement) {
+            const items = await fetchRepoContents(owner, repo, path);
+             if (!Array.isArray(items)) {
+                  parentElement.innerHTML += `<p class="status-error">Fehler beim Laden der Bilder: ${items.error || 'Unbekannter Fehler'}</p>`;
+                  return;
+             }
+
+            const imageFiles = items.filter(item => item.type === 'file' && /\.(png|jpe?g|webp)$/i.test(item.name));
+            const screenshotDirs = items.filter(item => item.type === 'dir' && item.name.endsWith('Screenshots')); // phoneScreenshots, tabletScreenshots, etc.
+
+            // Direct images (icon, featureGraphic, etc.)
+            for (const imgFile of imageFiles) {
+                 parentElement.innerHTML += `<div><strong>${imgFile.name}:</strong><br/><img src="${imgFile.download_url}" alt="${imgFile.name}" loading="lazy"></div>`;
+            }
+
+            // Screenshot Directories
+            for (const ssDir of screenshotDirs) {
+                 const ssDiv = document.createElement('div');
+                 ssDiv.innerHTML = `<strong>${ssDir.name}/</strong>`;
+                 const ssFiles = await fetchRepoContents(owner, repo, ssDir.path);
+                 if (Array.isArray(ssFiles)) {
+                     const container = document.createElement('div');
+                     container.classList.add('screenshots-container');
+                     ssFiles.filter(f => f.type === 'file' && /\.(png|jpe?g|webp)$/i.test(f.name)).forEach(ssFile => {
+                         container.innerHTML += `<img src="${ssFile.download_url}" alt="${ssFile.name}" loading="lazy" title="${ssFile.name}">`;
+                     });
+                     if (container.childElementCount === 0) {
+                          ssDiv.innerHTML += ` <span class="status-warn"><i>(Keine Bilder gefunden)</i></span>`;
+                     } else {
+                           ssDiv.appendChild(container);
+                     }
+                 } else {
+                      ssDiv.innerHTML += `<p class="status-error">Fehler beim Laden von ${ssDir.name}: ${ssFiles.error || 'Unbekannter Fehler'}</p>`;
+                 }
+                 parentElement.appendChild(ssDiv);
+            }
+
+             if(imageFiles.length === 0 && screenshotDirs.length === 0) {
+                 parentElement.innerHTML += `<p><i>Keine unterstützten Bilder oder Screenshot-Verzeichnisse gefunden.</i></p>`;
+             }
+        }
+
+        function showError(message) {
+            errorMessageDiv.textContent = message;
+            errorMessageDiv.classList.remove('hidden');
+        }
+
+        function clearMessages() {
+            errorMessageDiv.textContent = '';
+            errorMessageDiv.classList.add('hidden');
+        }
+
+    </script>
+</body>
+</html>

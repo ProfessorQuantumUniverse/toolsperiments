@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacking Simulator v4.0 - Ultra Realism</title>
+    <style>
+        /* Grundlegendes Styling (wie vorher) */
+        body {
+            background-color: #000000; color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0; padding: 0; overflow: hidden;
+            font-size: 14px; line-height: 1.3;
+        }
+
+        /* Hauptcontainer für Layout */
+        .root-container {
+            display: flex;
+            flex-direction: column; /* Haupt-, Datenstrom oben, Kernel unten */
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Container für Hauptterminal und Datenstrom (nebeneinander) */
+        .top-panels-container {
+            display: flex;
+            flex-grow: 1; /* Nimmt den meisten Platz ein */
+            overflow: hidden; /* Wichtig */
+        }
+
+        /* Der Haupt-Terminal-Container (linke Seite) */
+        .terminal {
+            flex: 3; /* ca. 70% */
+            padding: 15px;
+            height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-right: 1px solid #1a1a1a; /* Leichte Trennung */
+        }
+
+        /* Header-Bereich */
+        .header {
+            border-bottom: 1px solid #00ff00; padding-bottom: 5px; margin-bottom: 10px;
+            color: #ffffff; font-weight: bold; text-align: center;
+            animation: flicker 1.5s infinite alternate;
+            flex-shrink: 0;
+        }
+
+        /* System Status Anzeige */
+        .system-status {
+            border: 1px dashed #444444; padding: 5px; margin-bottom: 10px;
+            font-size: 12px; color: #aaaaaa; flex-shrink: 0;
+        }
+        .status-line span { display: inline-block; min-width: 100px; }
+        .status-value { color: #00ffff; font-weight: bold; }
+
+        /* Bereich für die Ausgabe-Logs */
+        .output {
+            flex-grow: 1;
+            overflow-y: auto; /* Nur hier scrollen */
+            margin-bottom: 10px;
+            scrollbar-width: thin; /* Schlankere Scrollbar */
+            scrollbar-color: #00ff00 #000000; /* Scrollbar Farben */
+        }
+        .output p, .output div { margin: 2px 0; white-space: pre-wrap; word-wrap: break-word; }
+
+        /* Farbliche Hervorhebungen */
+        .success { color: #00ff00; } .error { color: #ff0000; } .warning { color: #ffff00; }
+        .info { color: #00ffff; } .system { color: #aaaaaa; } .ip { color: #ff9900; }
+        .command { color: #ffffff; } .path { color: #bbbbbb; } .hex { color: #d0d0ff; }
+        .kernel { color: #8888ff; font-size: 11px; } /* Farbe für Kernel-Meldungen */
+
+        /* Simulierter Eingabebereich */
+        .input-line { display: flex; align-items: center; margin-top: auto; flex-shrink: 0; }
+        .prompt { color: #00ff00; margin-right: 5px; white-space: nowrap; }
+        #fake-input { display: inline-block; }
+        .input-cursor { display: inline-block; background-color: #00ff00; width: 8px; height: 16px; animation: blink 1s step-end infinite; margin-left: 2px; vertical-align: middle; }
+
+        /* Progress Bar Simulation */
+        .progress-container { margin: 5px 0; border: 1px solid #00ff00; padding: 2px; width: 90%; }
+        .progress-bar { height: 15px; background-color: #00ff00; width: 0%; animation: progress-fill 5s linear forwards; animation-delay: var(--delay, 0s); }
+        .progress-label { color: #ffffff; margin-right: 5px; }
+
+        /* ASCII Art */
+        .ascii-art { color: #ff0000; font-size: 10px; line-height: 1; white-space: pre; margin: 10px 0; }
+
+        /* Data Stream Panel (rechte Seite) */
+        .data-stream {
+            flex: 1.5; /* Etwas mehr Platz als 1, aber weniger als 3 */
+            height: 100%; box-sizing: border-box;
+            border-left: 1px solid #1a1a1a; /* Leichte Trennung */
+            padding: 10px; background-color: #050505;
+            color: #0a600a; font-size: 10px; line-height: 1.1;
+            overflow: hidden; white-space: nowrap;
+        }
+        .data-stream div { /* Potenziell Animationen hier */ }
+        .net-conn { color: #4a9a4a; } /* Für simulierte Netzwerkverbindungen */
+        .data-hex { color: #5a7a9a; } /* Hex-Dumps im Stream */
+
+        /* NEU: Kernel Log Footer */
+        .kernel-log {
+            height: 50px; /* Feste Höhe */
+            background-color: #080808;
+            border-top: 1px solid #333333;
+            padding: 5px 10px;
+            overflow: hidden;
+            flex-shrink: 0; /* Verhindert Schrumpfen */
+            font-size: 11px;
+            color: #aaaaaa;
+        }
+         .kernel-log div {
+             white-space: nowrap;
+             line-height: 1.2;
+         }
+
+        /* Animationen */
+        @keyframes blink { from, to { background-color: transparent; } 50% { background-color: #00ff00; } }
+        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+        @keyframes progress-fill { from { width: 0%; } to { width: 100%; } }
+
+        /* Optional: Subtiler Scanline-Effekt */
+        body::after {
+            content: " "; display: block; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            z-index: 2; pointer-events: none;
+            animation: scanline 10s linear infinite;
+            opacity: 0.1;
+        }
+        @keyframes scanline { 0% { background-position: 0 0; } 100% { background-position: 0 100%; } } 
+
+    </style>
+</head>
+<body>
+    <div class="root-container">
+        <div class="top-panels-container">
+            <div class="terminal" id="terminal-main">
+                <div class="header">*** CEREBRUS CORTEX - GHOST PROTOCOL INTERFACE ***</div>
+                <div class="system-status" id="system-status">
+                    <div class="status-line"><span>CPU Load:</span> <span class="status-value" id="status-cpu">--%</span></div>
+                    <div class="status-line"><span>Memory Usage:</span> <span class="status-value" id="status-mem">--%</span></div>
+                    <div class="status-line"><span>Net Out/In:</span> <span class="status-value" id="status-net">--/-- Mb/s</span></div>
+                    <div class="status-line"><span>Process ID:</span> <span class="status-value" id="status-pid">----</span></div>
+                </div>
+                <div class="output" id="output-log"></div>
+                <div class="input-line">
+                    <span class="prompt" id="prompt">root@kali:~#</span>
+                    <span id="fake-input"></span>
+                    <span class="input-cursor"></span>
+                </div>
+            </div>
+            <div class="data-stream" id="data-stream"></div>
+        </div>
+        <div class="kernel-log" id="kernel-log"></div>
+    </div>
+
+    <script>
+        // --- Elemente holen ---
+        const outputLog = document.getElementById('output-log');
+        const fakeInput = document.getElementById('fake-input');
+        const terminalMain = document.getElementById('terminal-main');
+        const dataStreamElement = document.getElementById('data-stream');
+        const kernelLogElement = document.getElementById('kernel-log'); // Neuer Footer
+        const statusCpu = document.getElementById('status-cpu');
+        const statusMem = document.getElementById('status-mem');
+        const statusNet = document.getElementById('status-net');
+        const statusPid = document.getElementById('status-pid');
+        const promptElement = document.getElementById('prompt'); // Prompt für Wechsel
+
+        let commandIndex = 0;
+        let lineIndex = 0;
+        const maxDataStreamLines = 100;
+        const maxKernelLogLines = 10; // Weniger Zeilen im Footer
+        let startTime = Date.now();
+        let currentPID = Math.floor(Math.random() * 8000) + 1000;
+        statusPid.textContent = currentPID; // Start-PID setzen
+
+        // --- Log-Einträge (mehr Details, Jargon, Passwort-Sim) ---
+        const logLines = [
+            { text: "Booting Cerebrus Core v7.1... OK", delay: 300 },
+            { text: "Loading modules: <span class='path'>stealth_net.ko</span>, <span class='path'>quantum_tunnel.ko</span>, <span class='path'>exploit_kit_v4.so</span>", delay: 500 },
+            { text: "<span class='system'>Establishing secure uplink via TOR node cascade...</span>", delay: 800 },
+            { type: 'progress', label: 'Uplink Sync:', duration: 3000, delay: 900 },
+            { text: "<span class='success'>[SECURE]</span> Uplink established. IP masked: <span class='ip'>Geo-proxy FRANCE</span>", delay: 4000 },
+            { type: 'command', command: 'scan_target --deep --vuln-check 45.33.32.156', delay: 4500 },
+            { text: "<span class='system'>Initiating Nmap scan (Aggressive TCP SYN Stealth)...</span>", delay: 5000 },
+            { text: "<span class='info'>Scanning 45.33.32.156 [65535 ports]</span>", delay: 5200 },
+            { type: 'progress', label: 'Port Scan:', duration: 8000, delay: 5500 },
+            { text: "<span class='success'>[+]</span> Port 22/tcp (SSH) : OPEN (OpenSSH 8.2p1 Ubuntu-4ubuntu0.1)", delay: 13500 },
+            { text: "<span class='success'>[+]</span> Port 80/tcp (HTTP) : OPEN (Apache httpd 2.4.41)", delay: 13700 },
+            { text: "<span class='success'>[+]</span> Port 443/tcp (HTTPS) : OPEN (Apache httpd 2.4.41)", delay: 13900 },
+            { text: "<span class='success'>[+]</span> Port 3306/tcp (MySQL) : FILTERED", delay: 14100 },
+            { text: "<span class='warning'>[VULN!]</span> Apache 2.4.41 potentially vulnerable to CVE-2021-41773 (Path Traversal)", delay: 14500 },
+            { text: "<span class='warning'>[VULN?]</span> OpenSSH 8.2p1 check user enumeration (CVE-2018-15473)", delay: 14800 },
+            { type: 'command', command: 'msfconsole -x "use exploit/linux/ssh/ssh_enumusers; set RHOSTS 45.33.32.156; run"', delay: 15500 },
+            { text: "<span class='info'>[*]</span> Launching Metasploit Framework module...", delay: 16000 },
+            { type: 'progress', label: 'MSF Exploit:', duration: 6000, delay: 16200 },
+            { text: "<span class='success'>[+]</span> User found: 'administrator'", delay: 22200 },
+            { text: "<span class='success'>[+]</span> User found: 'backup_svc'", delay: 22400 },
+            { text: "<span class='error'>[-]</span> User 'root' not found via enumeration.", delay: 22600 },
+            { text: "<span class='system'>Attempting SSH brute-force against 'administrator' using common password list...</span>", delay: 23000 },
+            { type: 'password_prompt', user: 'administrator', target: '45.33.32.156', delay: 23500 },
+            // { type: 'progress', label: 'Brute Force:', duration: 9000, delay: 24000 }, // Replaced by password prompt
+            { text: "<span class='error'>SSH Brute Force failed. Rate limit detected.</span>", delay: 33000 },
+            { text: "<span class='system'>Falling back to CVE-2021-41773 Apache exploit...</span>", delay: 33500 },
+            { type: 'command', command: 'curl -s --path-as-is "http://45.33.32.156/cgi-bin/.%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd"', delay: 34000 },
+            { text: "<span class='hex'>root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\n[...SNIPPED...]</span>", delay: 35000 },
+            { text: "<span class='success'>[!!!] Target Vulnerable! /etc/passwd obtained!</span>", delay: 35500 },
+            { text: "<span class='system'>Leveraging vulnerability for Remote Code Execution... Injecting reverse shell payload...</span>", delay: 36000 },
+            { type: 'progress', label: 'RCE Payload Injection:', duration: 5000, delay: 36500 },
+            { text: "<span class='success'>[+] Reverse shell connection established!</span>", delay: 41500 },
+            { type: 'prompt_change', newPrompt: 'www-data@target:/$', delay: 41700 }, // Change prompt
+            { type: 'command', command: 'whoami; hostname; id', delay: 42000 },
+            { text: "www-data\ntarget-webserver\nuid=33(www-data) gid=33(www-data) groups=33(www-data)", delay: 42500 },
+            { text: "<span class='system'>Attempting privilege escalation using kernel exploit (Dirty COW variant)...</span>", delay: 43000 },
+            { type: 'command', command: './exploit_dirtyc0w', delay: 43500 },
+             { type: 'progress', label: 'PrivEsc Exploit:', duration: 6000, delay: 44000 },
+             { text: "<span class='success'>[ROOTED]</span> Privilege escalation successful!", delay: 50000 },
+             { type: 'prompt_change', newPrompt: 'root@target:/#', delay: 50200 }, // Change to root prompt
+             { type: 'command', command: 'cat /root/secret_plans.txt | base64', delay: 50500 },
+             { text: "<span class='hex'>VGhpcyBpcyB0aGUgc2VjcmV0IGRhdGEhIEV4Zmls dHJhdGUgaW1tZWRpYXRlbHkuLi4KQUJDREVGR0h JSktMTU5PUFFSU1RVVldYWVo=</span>", delay: 51500 },
+            { text: "<span class='system'>Exfiltrating data to C2 server...</span>", delay: 52000 },
+            { type: 'progress', label: 'Exfiltration:', duration: 7000, delay: 52500 },
+            { text: "<span class='success'>[+]</span> Data exfiltrated. Hash verified.", delay: 59500 },
+            { type: 'command', command: 'rm -rf /tmp/*; history -c; kill -9 $$', delay: 60000 },
+            { text: "<span class='system'>Covering tracks... Deleting logs and self-destructing payload...</span>", delay: 60500 },
+             { type: 'progress', label: 'Cleanup:', duration: 4000, delay: 60800 },
+            { text: "<span class='success'>*** OPERATION DARK PHOENIX COMPLETE - VANISHING... ***</span>", delay: 64800 },
+            { type: 'prompt_change', newPrompt: 'root@kali:~#', delay: 65000 }, // Reset prompt
+            { type: 'loop', delay: 70000 }
+        ];
+
+        // --- Hilfsfunktionen (wie vorher + neue) ---
+        function rand(max) { return Math.floor(Math.random() * max); }
+        function randomHex(len) { return Array(len).fill(0).map(() => rand(16).toString(16)).join(''); }
+        function randomIP() { return `${rand(256)}.${rand(256)}.${rand(256)}.${rand(256)}`; }
+        function formatTime(ms) { /* ... (wie vorher) ... */ const totalSeconds = Math.floor(ms / 1000); const hours = Math.floor(totalSeconds / 3600); const minutes = Math.floor((totalSeconds % 3600) / 60); const seconds = totalSeconds % 60; return `${hours}h ${minutes}m ${seconds}s`; }
+
+        // --- Hauptterminal Logik (angepasst) ---
+        function addLineToLog(content) {
+             const line = document.createElement('div');
+             line.innerHTML = content;
+             outputLog.appendChild(line);
+             outputLog.scrollTop = outputLog.scrollHeight;
+        }
+
+        function simulateCommand(commandText, delay, callback) {
+           fakeInput.innerHTML = '';
+           let i = 0;
+           function typeCmdChar() {
+                if (i < commandText.length) {
+                   fakeInput.innerHTML += commandText.charAt(i);
+                   i++;
+                   // Optional: Trigger fake kernel message on typing
+                   if(Math.random() < 0.05) addKernelLogLine(generateKernelMessage());
+                   setTimeout(typeCmdChar, Math.random() * 50 + 30); // Etwas schneller
+               } else {
+                   const promptText = promptElement.textContent; // Aktuellen Prompt holen
+                   const commandLine = document.createElement('p');
+                   commandLine.innerHTML = `<span class="prompt">${promptText}</span> <span class="command">${commandText}</span>`;
+                   outputLog.appendChild(commandLine);
+                   fakeInput.innerHTML = '';
+                   outputLog.scrollTop = outputLog.scrollHeight;
+                   if (callback) { setTimeout(callback, 200); } // Kürzere Pause
+               }
+           }
+           setTimeout(typeCmdChar, delay);
+        }
+
+        // NEU: Passwort-Eingabe simulieren
+        function simulatePasswordPrompt(user, target, delay, callback) {
+            const line = document.createElement('div');
+            line.innerHTML = `Password required for <span class='info'>${user}</span>@<span class='ip'>${target}</span>: `;
+            outputLog.appendChild(line);
+            outputLog.scrollTop = outputLog.scrollHeight;
+
+            let password = '';
+            const maxPassLength = Math.floor(Math.random() * 8) + 8; // 8-15 Zeichen
+
+            function typePassChar() {
+                if (password.length < maxPassLength) {
+                    password += '*';
+                    fakeInput.innerHTML = '*'.repeat(password.length); // Zeige Sternchen im Input
+                     // Optional: Trigger fake kernel message on typing
+                     if(Math.random() < 0.05) addKernelLogLine(generateKernelMessage());
+                    setTimeout(typePassChar, Math.random() * 150 + 100); // Langsameres Tippen für Passwörter
+                } else {
+                    // Passwort "eingegeben" - ins Log übernehmen (aber nicht das PW selbst)
+                    line.innerHTML += `<span class='error'>***</span>`; // Nur Sternchen ins Log
+                    fakeInput.innerHTML = ''; // Input leeren
+                    outputLog.scrollTop = outputLog.scrollHeight;
+                    if (callback) { setTimeout(callback, 500); } // Pause nach PW-Eingabe
+                }
+            }
+            setTimeout(typePassChar, delay);
+        }
+
+
+        function addProgressBar(label, duration, delay, callback) { /* ... (wie vorher, nur scrollen) ... */ const container = document.createElement('div'); container.style.setProperty('--delay', `${delay / 1000}s`); container.innerHTML = `<span class="progress-label">${label}</span><div class="progress-container"><div class="progress-bar" style="animation-duration: ${duration / 1000}s;"></div></div>`; outputLog.appendChild(container); outputLog.scrollTop = outputLog.scrollHeight; setTimeout(() => { if (callback) callback(); }, delay + duration); }
+        function addAsciiArt(art, delay, callback) { /* ... (wie vorher, nur scrollen) ... */ const pre = document.createElement('pre'); pre.className = 'ascii-art'; pre.textContent = art; setTimeout(() => { outputLog.appendChild(pre); outputLog.scrollTop = outputLog.scrollHeight; if (callback) callback(); }, delay); }
+
+         // Hauptfunktion für Terminal-Simulation (angepasst für neue Typen)
+         function processNextLine() {
+             if (lineIndex >= logLines.length) { /* ... Ende ... */ return; }
+             const item = logLines[lineIndex];
+             lineIndex++;
+
+             if (item.type === 'command') { simulateCommand(item.command, item.delay || 100, processNextLine); }
+             else if (item.type === 'password_prompt') { simulatePasswordPrompt(item.user, item.target, item.delay || 100, processNextLine); }
+             else if (item.type === 'progress') { addProgressBar(item.label, item.duration, item.delay || 0, processNextLine); }
+             else if (item.type === 'ascii') { addAsciiArt(item.art, item.delay || 0, processNextLine); }
+             else if (item.type === 'prompt_change') { setTimeout(() => { promptElement.textContent = item.newPrompt; processNextLine(); }, item.delay || 50); }
+             else if (item.type === 'loop') { setTimeout(() => { location.reload(); }, item.delay || 5000); }
+             else if (item.type === 'delay') { setTimeout(processNextLine, item.duration); }
+             else { // Normale Textzeile
+                 const lineElement = document.createElement('div');
+                 setTimeout(() => {
+                     lineElement.innerHTML = item.text;
+                     outputLog.appendChild(lineElement);
+                     outputLog.scrollTop = outputLog.scrollHeight;
+                     processNextLine();
+                 }, item.delay || 100);
+             }
+         }
+
+        // --- Data Stream Logik (mehr Varianz) ---
+        function generateDataLine() {
+             const type = Math.random();
+             let line = '';
+             const len = Math.floor(Math.random() * 40) + 20; // Kürzere Zeilen, mehr Platz
+
+             if (type < 0.3) { // Hex Dump
+                 line = `<span class="data-hex">0x${randomHex(4)}: ${randomHex(len)} ${randomHex(len)}</span>`;
+             } else if (type < 0.6) { // Network Connection Style
+                 const srcPort = rand(50000) + 1024;
+                 const dstPort = [22, 80, 443, 3306, 53, 1337][rand(6)];
+                 const flags = ['SYN', 'ACK', 'PSH,ACK', 'FIN', 'RST'][rand(5)];
+                 line = `<span class="net-conn">[${flags}] ${randomIP()}:${srcPort} -> ${randomIP()}:${dstPort}</span>`;
+             } else if (type < 0.8) { // Binary
+                 line = Array(len * 2).fill(0).map(() => rand(2)).join('');
+             } else { // Gibberish
+                 const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.:[]<>/\\|()_{}';
+                 line = Array(len + 10).fill(0).map(() => chars[rand(chars.length)]).join('');
+                 if (Math.random() < 0.05) line = `<span class="error">${line} [ERR!]</span>`;
+                 else if (Math.random() < 0.1) line = `<span class="warning">${line} [WARN]</span>`;
+             }
+             return line;
+         }
+
+        function updateDataStream() {
+             const newLine = document.createElement('div');
+             newLine.innerHTML = generateDataLine();
+             dataStreamElement.appendChild(newLine);
+             if (dataStreamElement.children.length > maxDataStreamLines) {
+                 dataStreamElement.removeChild(dataStreamElement.firstChild);
+             }
+             // Variable Geschwindigkeit
+             setTimeout(updateDataStream, Math.random() * 80 + 20); // Zwischen 20ms und 100ms
+         }
+
+        // --- Kernel Log Logik ---
+         function generateKernelMessage() {
+             const messages = [
+                 `usb ${rand(2)}-${rand(4)}: device descriptor read/64, error -${rand(110)}`,
+                 `ata${rand(4)}.00: exception Emask=0x0 SAct=0x${randomHex(8)} SErr=0x0 action=reset`,
+                 `EXT4-fs (sda${rand(3)}): mounted filesystem with ordered data mode. Opts: (null)`,
+                 `systemd[${currentPID}]: Started Session ${rand(20)} of user root.`,
+                 `audit: type=1400 audit(${Date.now()/1000}: ${rand(100)}): apparmor="DENIED" operation="open" profile="***" name="<span class='path'>/dev/mem</span>" pid=${rand(9000)+1000} comm="***"`,
+                 `Bluetooth: hci${rand(2)}: command 0x${randomHex(4)} tx timeout`,
+                 `CPU${rand(8)}: Core temperature above threshold, cpu clock throttled (Limit: ${rand(3000)+2000} MHz)`,
+                 `Netfilter logging: IN=eth0 OUT= MAC=${randomHex(12)}:${randomHex(12)} SRC=${randomIP()} DST=${randomIP()} LEN=${rand(1000)} TOS=0x00 PREC=0x00 TTL=${rand(128)} ID=${rand(65535)} PROTO=TCP SPT=${rand(65535)} DPT=${[22,80,443][rand(3)]}`
+             ];
+             const ts = (Date.now() / 1000).toFixed(6);
+             return `<span class="kernel">[${ts}] ${messages[rand(messages.length)]}</span>`;
+         }
+
+         function addKernelLogLine(content) {
+             const line = document.createElement('div');
+             line.innerHTML = content;
+             kernelLogElement.appendChild(line);
+             if (kernelLogElement.children.length > maxKernelLogLines) {
+                 kernelLogElement.removeChild(kernelLogElement.firstChild);
+             }
+             // Scrollen im Kernel-Log ist nicht vorgesehen (overflow: hidden)
+         }
+
+        // --- System Status Update Logik (angepasst) ---
+        function updateSystemStatus() {
+             let cpu = rand(70) + 25; let mem = rand(60) + 35;
+             let netOut = (rand(8000) + 1000) / 1000; // MB/s
+             let netIn = (rand(2000) + 500) / 1000;  // MB/s
+             if (Math.random() < 0.3) cpu += rand(15)-7; if (Math.random() < 0.3) mem += rand(10)-5;
+             cpu = Math.max(10, Math.min(99, cpu)); mem = Math.max(20, Math.min(98, mem));
+             if (Math.random() < 0.05) currentPID += rand(5); // PID ändert sich manchmal leicht
+             statusPid.textContent = currentPID;
+
+             statusCpu.textContent = `${cpu}%`; statusMem.textContent = `${mem}%`;
+             statusNet.textContent = `${netOut.toFixed(1)}/${netIn.toFixed(1)} Mb/s`; // Output/Input
+             const elapsed = Date.now() - startTime;
+             // statusUptime.textContent = formatTime(elapsed); // Uptime entfernt, durch PID ersetzt
+
+             statusCpu.style.color = cpu > 90 ? '#ff0000' : (cpu > 70 ? '#ffff00' : '#00ffff');
+             statusMem.style.color = mem > 90 ? '#ff0000' : (mem > 75 ? '#ffff00' : '#00ffff');
+        }
+
+        // --- Start ---
+        setTimeout(processNextLine, 500); // Hauptterminal starten
+        updateDataStream(); // Datenstrom starten (ruft sich selbst wieder auf)
+        setInterval(() => addKernelLogLine(generateKernelMessage()), Math.random() * 1500 + 500); // Kernel-Logs zufällig hinzufügen
+        updateSystemStatus(); // Ersten Status anzeigen
+        setInterval(updateSystemStatus, 1800); // Systemstatus aktualisieren
+
+        // Optional: Tastatur-Interaktion simulieren
+        /* document.addEventListener('keypress', () => {
+            if (Math.random() < 0.5) { // Nicht bei *jedem* Tastendruck
+                 addKernelLogLine(generateKernelMessage()); // Zeige Kernel-Meldung
+                 // Optional: Datenstrom kurz beschleunigen? (komplexer)
+            }
+        }); */
+
+    </script>
+</body>
+</html>
