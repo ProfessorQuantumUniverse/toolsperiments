@@ -1,90 +1,287 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>toolsperiments — kleine Web-Experimente</title>
-<meta name="description" content="Eine Sammlung kleiner Web-Tools, Demos und Experimente von ProfessorQuantumUniverse.">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Shelly Finder – finde in wenigen Fragen das passende Shelly-Gerät: Relais, Dimmer, Rollladen, Energiemesser, Stecker, Sensoren und mehr." />
+<title>Shelly Finder — Welches Shelly passt zu dir?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  :root{
-    --bg:#0a0e14; --bg2:#111722; --card:#161d2b; --card-h:#1d2738;
-    --line:#26304a; --text:#e6edf3; --muted:#8b98ad; --accent:#5cc8ff; --accent2:#7c5cff;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{
-    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
-    background:radial-gradient(1200px 600px at 20% -10%,#16203a 0%,var(--bg) 55%) fixed,var(--bg);
-    color:var(--text);min-height:100vh;padding:48px 20px 80px;
-  }
-  .wrap{max-width:1080px;margin:0 auto}
-  header{margin-bottom:40px}
-  .logo{font-family:'Consolas',monospace;font-size:14px;color:var(--accent);letter-spacing:2px;margin-bottom:14px}
-  h1{font-size:clamp(34px,6vw,56px);font-weight:800;line-height:1.05;
-     background:linear-gradient(120deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .sub{color:var(--muted);font-size:17px;margin-top:14px;max-width:620px;line-height:1.6}
-  .count{display:inline-block;margin-top:18px;font-family:'Consolas',monospace;font-size:13px;
-         color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 14px}
-  .section{margin-top:44px}
-  .section h2{font-size:13px;text-transform:uppercase;letter-spacing:3px;color:var(--muted);
-              margin-bottom:18px;font-weight:700}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
-  a.card{
-    display:flex;flex-direction:column;gap:10px;text-decoration:none;color:inherit;
-    background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;
-    transition:transform .15s ease,background .15s ease,border-color .15s ease;
-  }
-  a.card:hover{transform:translateY(-4px);background:var(--card-h);border-color:var(--accent)}
-  .ico{font-size:30px;line-height:1}
-  .card h3{font-size:18px;font-weight:700}
-  .card p{color:var(--muted);font-size:14px;line-height:1.5;flex:1}
-  .tag{align-self:flex-start;font-family:'Consolas',monospace;font-size:11px;color:var(--accent);
-       background:rgba(92,200,255,.1);border:1px solid rgba(92,200,255,.25);border-radius:6px;padding:3px 8px}
-  footer{margin-top:60px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:24px;line-height:1.7}
-  footer a{color:var(--accent);text-decoration:none}
+/* ============ Tokens ============ */
+:root{
+  --paper:#E9EAE3;
+  --paper2:#F3F4EE;
+  --white:#FFFFFF;
+  --ink:#16181C;
+  --ink2:#4A4E57;
+  --ink3:#7B808A;
+  --line:rgba(22,24,28,.14);
+  --line2:rgba(22,24,28,.28);
+  --lime:#A6D400;
+  --lime-bright:#B7E60A;
+  --lime-deep:#6E9600;
+  --lime-ink:#3C5200;
+  --slate:#5B6370;
+  --danger:#C4451F;
+  --radius:14px;
+  --radius-s:10px;
+  --shadow:0 1px 0 rgba(22,24,28,.05), 0 12px 34px -22px rgba(22,24,28,.45);
+  --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans:'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --disp:'Space Grotesk', var(--sans);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  background:var(--paper);
+  background-image:
+    linear-gradient(0deg, rgba(22,24,28,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22,24,28,.02) 1px, transparent 1px);
+  background-size:28px 28px;
+  -webkit-font-smoothing:antialiased;
+  line-height:1.5;
+  min-height:100vh;
+}
+a{color:inherit}
+button{font-family:inherit}
+
+/* ============ Shell ============ */
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+header.site{
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0));
+  position:sticky;top:0;z-index:20;backdrop-filter:blur(6px);
+}
+.site .wrap{display:flex;align-items:center;gap:14px;height:64px}
+.logo{display:flex;align-items:center;gap:11px;text-decoration:none}
+.logo .mark{
+  width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+  background:var(--lime);border:1.5px solid var(--lime-deep);
+  display:grid;place-items:center;
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.35);
+}
+.logo .mark span{width:8px;height:8px;background:var(--ink);border-radius:2px}
+.logo b{font-family:var(--disp);font-weight:700;letter-spacing:-.01em;font-size:1.05rem}
+.logo small{font-family:var(--mono);font-size:.66rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.14em;display:block;margin-top:-2px}
+.site .spacer{flex:1}
+.ghost{
+  font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink2);background:transparent;border:1px solid var(--line2);
+  padding:8px 12px;border-radius:999px;cursor:pointer;transition:.15s;
+}
+.ghost:hover{border-color:var(--ink);color:var(--ink)}
+.ghost:focus-visible{outline:2px solid var(--lime-deep);outline-offset:2px}
+
+/* ============ Layout grid ============ */
+.stage{display:grid;grid-template-columns:1fr;gap:34px;padding:38px 0 90px}
+@media(min-width:1000px){
+  .stage{grid-template-columns:238px minmax(0,1fr);gap:52px;padding:52px 0 110px}
+}
+
+/* ============ Wiring spine (progress) ============ */
+.spine{display:none}
+@media(min-width:1000px){
+  .spine{display:block;position:sticky;top:96px;align-self:start}
+}
+.spine h2{
+  font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.16em;
+  color:var(--ink3);font-weight:500;margin:0 0 18px 4px;
+}
+.trail{position:relative;padding-left:26px}
+.trail::before{
+  content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;
+  background:var(--line2);border-radius:2px;
+}
+.trail .fill{
+  content:"";position:absolute;left:7px;top:6px;width:2px;background:var(--lime);
+  border-radius:2px;transition:height .45s cubic-bezier(.2,.7,.2,1);
+}
+.node{position:relative;margin-bottom:16px;min-height:16px}
+.node .dot{
+  position:absolute;left:-26px;top:2px;width:16px;height:16px;border-radius:50%;
+  background:var(--paper);border:2px solid var(--line2);transition:.3s;
+}
+.node.done .dot{background:var(--lime);border-color:var(--lime-deep);box-shadow:0 0 0 4px rgba(166,212,0,.18)}
+.node.active .dot{background:var(--white);border-color:var(--ink);box-shadow:0 0 0 4px rgba(22,24,28,.08)}
+.node .lbl{font-family:var(--mono);font-size:.66rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);display:block;line-height:1.3}
+.node .val{font-size:.86rem;font-weight:500;color:var(--ink);margin-top:1px;line-height:1.35}
+.node.active .val{color:var(--ink)}
+.node:not(.done):not(.active) .val{color:var(--ink3)}
+
+/* ============ Mobile progress ============ */
+.mprog{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+@media(min-width:1000px){.mprog{display:none}}
+.mprog .bar{flex:1;height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.mprog .bar i{display:block;height:100%;background:var(--lime);border-radius:6px;transition:width .4s cubic-bezier(.2,.7,.2,1)}
+.mprog .pct{font-family:var(--mono);font-size:.72rem;color:var(--ink2);white-space:nowrap}
+
+/* ============ Panel (question) ============ */
+.panel{max-width:820px}
+.panel .eyebrow{
+  font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.18em;
+  color:var(--lime-deep);font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:14px;
+}
+.panel .eyebrow::before{content:"";width:22px;height:2px;background:var(--lime-deep);display:inline-block}
+.panel h1{
+  font-family:var(--disp);font-weight:700;letter-spacing:-.02em;line-height:1.06;
+  font-size:clamp(1.7rem,4.4vw,2.7rem);margin:0 0 10px;
+}
+.panel .lede{color:var(--ink2);font-size:1.02rem;max-width:60ch;margin:0 0 28px}
+
+.opts{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:560px){.opts.cols-2{grid-template-columns:1fr 1fr}}
+.opt{
+  display:flex;align-items:center;gap:16px;text-align:left;width:100%;
+  background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px 18px;cursor:pointer;transition:.16s cubic-bezier(.2,.7,.2,1);
+  box-shadow:0 1px 0 rgba(22,24,28,.03);
+}
+.opt:hover{border-color:var(--ink);transform:translateY(-1px);box-shadow:var(--shadow)}
+.opt:focus-visible{outline:2px solid var(--lime-deep);outline-offset:2px}
+.opt .ic{flex:0 0 auto;width:52px;height:52px;border-radius:11px;background:var(--paper2);border:1px solid var(--line);display:grid;place-items:center;overflow:hidden}
+.opt .ic svg{width:44px;height:44px;display:block}
+.opt .txt b{display:block;font-weight:600;font-size:1.02rem;letter-spacing:-.01em}
+.opt .txt span{display:block;color:var(--ink2);font-size:.86rem;margin-top:2px;line-height:1.4}
+.opt .chev{margin-left:auto;flex:0 0 auto;color:var(--ink3);transition:.16s}
+.opt:hover .chev{color:var(--ink);transform:translateX(2px)}
+.opt.sel{background:var(--lime);border-color:var(--lime-deep)}
+.opt.sel .txt span{color:var(--lime-ink)}
+.opt.sel .ic{background:rgba(255,255,255,.55);border-color:rgba(60,82,0,.25)}
+
+.navrow{display:flex;align-items:center;gap:14px;margin-top:30px}
+.back{
+  font-family:var(--mono);font-size:.76rem;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink2);background:transparent;border:none;cursor:pointer;padding:8px 4px;display:inline-flex;align-items:center;gap:8px;
+}
+.back:hover{color:var(--ink)}
+.back:disabled{opacity:.35;cursor:default}
+.hint{font-size:.82rem;color:var(--ink3);margin-left:auto;font-family:var(--mono)}
+
+/* ============ Result ============ */
+.result{max-width:900px}
+.result .eyebrow{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.18em;color:var(--lime-deep);font-weight:600;margin-bottom:14px}
+.result h1{font-family:var(--disp);font-weight:700;letter-spacing:-.02em;font-size:clamp(1.6rem,4vw,2.4rem);margin:0 0 4px;line-height:1.08}
+.result .sub{color:var(--ink2);margin:0 0 30px;max-width:60ch}
+
+.hero{
+  display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--ink);border-radius:18px;overflow:hidden;background:var(--white);box-shadow:var(--shadow);
+}
+@media(min-width:680px){.hero{grid-template-columns:230px 1fr}}
+.hero .shot{
+  background:radial-gradient(120% 120% at 30% 20%, #23262e 0%, #141519 70%);
+  display:grid;place-items:center;padding:26px;position:relative;min-height:190px;
+}
+.hero .shot::after{content:"";position:absolute;inset:0;background:radial-gradient(60% 60% at 50% 45%, rgba(166,212,0,.22), transparent 70%);pointer-events:none}
+.hero .shot svg{width:150px;height:150px;filter:drop-shadow(0 10px 24px rgba(0,0,0,.5));position:relative;z-index:1}
+.hero .body{padding:24px 26px}
+.badge-gen{display:inline-block;font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;background:var(--ink);color:var(--paper2);padding:4px 9px;border-radius:6px;margin-bottom:12px}
+.hero .body h2{font-family:var(--disp);font-weight:700;font-size:1.6rem;letter-spacing:-.02em;margin:0 0 6px;line-height:1.1}
+.hero .body .blurb{color:var(--ink2);margin:0 0 16px;font-size:.98rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px}
+.chip{font-family:var(--mono);font-size:.68rem;letter-spacing:.04em;padding:4px 9px;border-radius:999px;background:var(--paper2);border:1px solid var(--line);color:var(--ink2)}
+.chip.pm{background:rgba(166,212,0,.2);border-color:var(--lime-deep);color:var(--lime-ink)}
+.price{font-family:var(--disp);font-weight:600;font-size:1.15rem}
+.price small{font-family:var(--mono);font-weight:400;font-size:.72rem;color:var(--ink3);display:block;text-transform:uppercase;letter-spacing:.1em}
+
+.specsheet{margin-top:26px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--white)}
+.specsheet .row{display:grid;grid-template-columns:150px 1fr;gap:0;border-bottom:1px solid var(--line)}
+.specsheet .row:last-child{border-bottom:none}
+.specsheet .k{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);padding:11px 16px;background:var(--paper2);border-right:1px solid var(--line)}
+.specsheet .v{padding:11px 16px;font-size:.92rem}
+@media(max-width:520px){.specsheet .row{grid-template-columns:120px 1fr}}
+
+.why{margin-top:26px}
+.why h3{font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.14em;color:var(--ink2);margin:0 0 12px}
+.why ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.why li{display:flex;gap:11px;font-size:.95rem;color:var(--ink);align-items:flex-start}
+.why li svg{flex:0 0 auto;margin-top:3px;color:var(--lime-deep)}
+.note{margin-top:16px;font-size:.88rem;color:var(--ink2);background:var(--paper2);border:1px solid var(--line);border-left:3px solid var(--lime-deep);border-radius:8px;padding:12px 15px}
+.note b{font-weight:600}
+
+.alts{margin-top:34px}
+.alts h3{font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.14em;color:var(--ink2);margin:0 0 14px}
+.altgrid{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:600px){.altgrid{grid-template-columns:1fr 1fr}}
+.altcard{display:flex;gap:14px;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.altcard .ic{flex:0 0 auto;width:54px;height:54px;border-radius:11px;background:#181a1f;display:grid;place-items:center}
+.altcard .ic svg{width:44px;height:44px}
+.altcard b{font-weight:600;font-size:.98rem;letter-spacing:-.01em;display:block}
+.altcard span{font-size:.82rem;color:var(--ink2);display:block;margin-top:2px;line-height:1.35}
+.altcard .p{font-family:var(--mono);font-size:.76rem;color:var(--ink3);margin-top:4px;display:block}
+
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}
+.btn{
+  font-family:var(--mono);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;font-weight:500;
+  padding:13px 20px;border-radius:999px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:9px;transition:.16s;border:1px solid transparent;
+}
+.btn.primary{background:var(--ink);color:var(--paper2)}
+.btn.primary:hover{background:#000}
+.btn.line{background:transparent;border-color:var(--line2);color:var(--ink)}
+.btn.line:hover{border-color:var(--ink)}
+.btn:focus-visible{outline:2px solid var(--lime-deep);outline-offset:2px}
+
+.disclaimer{margin-top:46px;padding-top:22px;border-top:1px solid var(--line);font-size:.8rem;color:var(--ink3);max-width:70ch}
+
+/* ============ Intro ============ */
+.intro{max-width:760px}
+.intro h1{font-family:var(--disp);font-weight:700;letter-spacing:-.025em;line-height:1.02;font-size:clamp(2.1rem,6.5vw,3.6rem);margin:0 0 18px}
+.intro h1 .hl{color:var(--lime-deep);position:relative;white-space:nowrap}
+.intro .lede{font-size:1.12rem;color:var(--ink2);max-width:58ch;margin:0 0 30px}
+.startbtn{
+  font-family:var(--mono);font-size:.9rem;text-transform:uppercase;letter-spacing:.1em;font-weight:500;
+  background:var(--lime);color:var(--ink);border:1.5px solid var(--lime-deep);
+  padding:16px 26px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:12px;transition:.18s;
+  box-shadow:0 12px 30px -14px rgba(110,150,0,.8);
+}
+.startbtn:hover{transform:translateY(-2px);box-shadow:0 18px 40px -16px rgba(110,150,0,.9)}
+.startbtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.introstats{display:flex;flex-wrap:wrap;gap:26px;margin-top:44px}
+.introstats div{border-left:2px solid var(--lime);padding-left:14px}
+.introstats b{font-family:var(--disp);font-weight:700;font-size:1.7rem;display:block;line-height:1}
+.introstats span{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3)}
+
+.fade-in{animation:fade .38s cubic-bezier(.2,.7,.2,1)}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+footer.site{border-top:1px solid var(--line);padding:26px 0;color:var(--ink3);font-size:.8rem}
+footer.site .wrap{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
+footer .mono{font-family:var(--mono);letter-spacing:.04em}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="logo">~/ toolsperiments</div>
-    <h1>Werkstatt der Web-Experimente</h1>
-    <p class="sub">Eine gesammelte Spielwiese kleiner Tools, Demos und Experimente — vom Pi-Day-Countdown bis zur 3D-Reise durch ein Wurmloch. Klick ein Kärtchen, um es zu öffnen.</p>
-    <span class="count" id="count">11 Experimente</span>
-  </header>
-
-  <div class="section">
-    <h2>🔭 Space &amp; Science</h2>
-    <div class="grid">
-      <a class="card" href="./interstellar/"><div class="ico">🌌</div><h3>Interstellar</h3><p>Immersive 3D-Reise mit Gargantua- und Wurmloch-Shadern.</p><span class="tag">webgl</span></a>
-      <a class="card" href="./aurora-cycles/"><div class="ico">🌞</div><h3>Aurora Voyager</h3><p>Sonnenzyklus &amp; Live-Tracking von Polarlichtern.</p><span class="tag">space-weather</span></a>
-      <a class="card" href="./cool-globe/"><div class="ico">🌍</div><h3>Sci-Fi Global Monitor</h3><p>3D-Globus-Experiment auf Basis von globe.gl.</p><span class="tag">globe.gl</span></a>
-      <a class="card" href="./pi-day/"><div class="ico">π</div><h3>π Day</h3><p>Countdown, 1000 Stellen von π und kleine Pi-Spielereien.</p><span class="tag">math</span></a>
-      <a class="card" href="./einstein-wisdom/"><div class="ico">🧠</div><h3>Weisheit Einsteins</h3><p>Eine Sammlung von Zitaten Albert Einsteins.</p><span class="tag">quotes</span></a>
-    </div>
+<header class="site">
+  <div class="wrap">
+    <a class="logo" href="./" onclick="return goIntro(event)">
+      <span class="mark"><span></span></span>
+      <span><b>Shelly&nbsp;Finder</b><small>Konfigurator</small></span>
+    </a>
+    <span class="spacer"></span>
+    <button class="ghost" id="restartTop" onclick="goIntro()" hidden>Neu starten</button>
   </div>
+</header>
 
-  <div class="section">
-    <h2>🎮 Just for Fun</h2>
-    <div class="grid">
-      <a class="card" href="./aggressive-christmas/"><div class="ico">🎄</div><h3>Aggressive Christmas</h3><p>Ein etwas aggressiver Weihnachts-Countdown.</p><span class="tag">fun</span></a>
-      <a class="card" href="./minion-world/"><div class="ico">🍌</div><h3>Minion World</h3><p>Das verrückteste Minion-Fandom als Webseite.</p><span class="tag">fun</span></a>
-      <a class="card" href="./hacking-simulator/"><div class="ico">💻</div><h3>Hacking Simulator</h3><p>Spaßiger „Ultra-Realism"-Hacking-Simulator.</p><span class="tag">fun</span></a>
-    </div>
+<main class="wrap">
+  <div id="app"></div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="mono">SHELLY FINDER</span>
+    <span>Inoffizielles Auswahl-Tool · kein Shelly-/Allterco-Produkt.</span>
+    <span class="mono">Preise ca. · Stand 2026</span>
   </div>
+</footer>
 
-  <div class="section">
-    <h2>🛠️ Tools &amp; Utilities</h2>
-    <div class="grid">
-      <a class="card" href="./AiComparison/"><div class="ico">🤖</div><h3>AI-Abo-Vergleich</h3><p>Entscheidungshilfe für KI-Abos im Vergleich.</p><span class="tag">tool</span></a>
-      <a class="card" href="./internetDeepDive/"><div class="ico">🔎</div><h3>Internet Deep Dive</h3><p>Google-Dorking Recon-Assistent (OSINT).</p><span class="tag">osint</span></a>
-      <a class="card" href="./fastlane-checker/"><div class="ico">🧩</div><h3>Fastlane Checker</h3><p>Prüft die F-Droid-Fastlane-Ordnerstruktur.</p><span class="tag">dev</span></a>
-    </div>
-  </div>
-
-  <footer>
-    Teil von <a href="https://github.com/ProfessorQuantumUniverse/toolsperiments">github.com/ProfessorQuantumUniverse/toolsperiments</a><br>
-    Jedes Unterverzeichnis ist ein eigenständiges Mini-Experiment. Beiträge &amp; Ideen willkommen.
-  </footer>
-</div>
+<script src="./app.js"></script>
 </body>
 </html>
