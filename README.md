@@ -16,7 +16,8 @@ Eine gesammelte Spielwiese kleiner Web-Tools, Demos und Experimente — Dinge, d
 | 💻 Hacking Simulator | [`hacking-simulator/`](./hacking-simulator/) | Spaßiger „Ultra-Realism"-Hacking-Simulator |
 | 🤖 AI-Abo-Vergleich | [`AiComparison/`](./AiComparison/) | Entscheidungshilfe für KI-Abos |
 | 🔎 Internet Deep Dive | [`internetDeepDive/`](./internetDeepDive/) | Google-Dorking Recon-Assistent (OSINT) |
-| 🧩 Fastlane Checker | [`fastlane-checker/`](./fastlane-checker/) | Prüft die F-Droid-Fastlane-Ordnerstruktur |
+| 🧩 Fastlane Checker | [`fastlane-checker/`](./fastlane-checker/) | Prüft die F-Droid-Fastlane-Ordnerstruktur in deinem REPO |
+| 🔌 SHELLY-Relay Configurator | [`SHELLY-configurator/`](./SHELLY-configurator/) | Let's you find the perfect shelly for your smart home project |
 
 ## Aufbau
 
