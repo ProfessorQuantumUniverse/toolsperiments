@@ -253,12 +253,210 @@ footer.site{border-top:1px solid var(--line);padding:26px 0;color:var(--ink3);fo
 footer.site .wrap{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
 footer .mono{font-family:var(--mono);letter-spacing:.04em}
 
+/* ============================================================
+   ANIMATIONS — modern, quirky micro-interactions
+   ============================================================ */
+
+/* --- animated ambient background blobs --- */
+body::before{
+  content:"";position:fixed;inset:-20% -10% auto -10%;height:75vh;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(38% 55% at 18% 20%, rgba(166,212,0,.20), transparent 70%),
+    radial-gradient(32% 48% at 82% 12%, rgba(121,179,255,.14), transparent 70%),
+    radial-gradient(30% 50% at 60% 85%, rgba(183,230,10,.14), transparent 72%);
+  filter:blur(8px);
+  animation:auroraDrift 22s ease-in-out infinite alternate;
+}
+@keyframes auroraDrift{
+  0%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(3%,2%,0) scale(1.08)}
+  100%{transform:translate3d(-3%,-1%,0) scale(1.04)}
+}
+
+/* --- product render: glossy depth + gentle life --- */
+.opt .ic svg,.altcard .ic svg,.hero .shot svg{
+  filter:drop-shadow(0 6px 10px rgba(0,0,0,.28));
+  transition:transform .5s cubic-bezier(.2,.9,.25,1.2);
+}
+.opt:hover .ic svg{transform:translateY(-2px) rotate(-3deg) scale(1.06)}
+.opt:active .ic svg{transform:scale(.96)}
+.opt .ic{position:relative;overflow:hidden}
+.opt .ic::after{ /* sheen sweep on hover */
+  content:"";position:absolute;top:-60%;left:-120%;width:60%;height:220%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:rotate(8deg);transition:none;
+}
+.opt:hover .ic::after{animation:sheen .7s ease}
+@keyframes sheen{from{left:-120%}to{left:160%}}
+
+/* --- pulsing LED elements inside renders --- */
+.led-ring{transform-origin:center;animation:ledRing 2.6s ease-in-out infinite}
+@keyframes ledRing{0%,100%{opacity:.55;stroke-width:3}50%{opacity:1;stroke-width:4.2}}
+.led-dot{transform-origin:center;animation:ledDot 2s ease-in-out infinite}
+.led-dot:nth-of-type(2){animation-delay:.25s}
+.led-dot:nth-of-type(3){animation-delay:.5s}
+.led-dot:nth-of-type(4){animation-delay:.75s}
+@keyframes ledDot{0%,100%{opacity:.4}50%{opacity:1;filter:drop-shadow(0 0 3px #B7E60A)}}
+.screen-text{animation:screenFlicker 4s steps(1) infinite}
+@keyframes screenFlicker{0%,97%,100%{opacity:1}98%{opacity:.55}}
+
+/* --- staggered card entrance --- */
+.opt{opacity:0;animation:optIn .5s cubic-bezier(.2,.8,.2,1) forwards}
+.opt:nth-child(1){animation-delay:.04s}.opt:nth-child(2){animation-delay:.10s}
+.opt:nth-child(3){animation-delay:.16s}.opt:nth-child(4){animation-delay:.22s}
+.opt:nth-child(5){animation-delay:.28s}.opt:nth-child(6){animation-delay:.34s}
+.opt:nth-child(7){animation-delay:.40s}.opt:nth-child(8){animation-delay:.46s}
+@keyframes optIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+
+/* --- selected option: satisfying pop --- */
+.opt.sel{animation:pop .32s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.035)}100%{transform:scale(1)}}
+.opt.sel .ic{animation:icoSpin .45s ease}
+@keyframes icoSpin{0%{transform:rotate(0)}60%{transform:rotate(9deg) scale(1.12)}100%{transform:none}}
+
+/* --- intro flourishes --- */
+.intro h1{animation:riseIn .7s cubic-bezier(.2,.8,.2,1) both}
+.intro .lede{animation:riseIn .7s .1s cubic-bezier(.2,.8,.2,1) both}
+.intro .startbtn{animation:riseIn .7s .2s cubic-bezier(.2,.8,.2,1) both}
+.introstats{animation:riseIn .7s .32s cubic-bezier(.2,.8,.2,1) both}
+@keyframes riseIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.introstats div{transition:transform .25s cubic-bezier(.2,.8,.2,1.4)}
+.introstats div:hover{transform:translateY(-4px)}
+.intro h1 .hl::after{ /* animated underline sweep */
+  content:"";position:absolute;left:0;right:0;bottom:.04em;height:.14em;border-radius:3px;
+  background:linear-gradient(90deg,var(--lime),var(--lime-bright));
+  transform:scaleX(0);transform-origin:left;animation:underline .9s .5s cubic-bezier(.2,.8,.2,1) forwards;
+}
+@keyframes underline{to{transform:scaleX(1)}}
+.startbtn svg{transition:transform .25s ease}
+.startbtn:hover svg{transform:translateX(5px)}
+
+/* --- start button living glow --- */
+.startbtn{position:relative;overflow:hidden}
+.startbtn::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.5),transparent 70%);
+  transform:translateX(-120%);animation:btnShine 3.2s ease-in-out infinite;
+}
+@keyframes btnShine{0%,60%{transform:translateX(-120%)}80%,100%{transform:translateX(120%)}}
+
+/* --- progress bar shimmer + spine dot pulse --- */
+.mprog .bar i{position:relative;overflow:hidden}
+.mprog .bar i::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);
+  animation:barShimmer 1.8s ease-in-out infinite;
+}
+@keyframes barShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+.node.active .dot{animation:dotPulse 1.8s ease-in-out infinite}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 0 4px rgba(22,24,28,.08)}50%{box-shadow:0 0 0 7px rgba(166,212,0,.22)}}
+
+/* --- RESULT reveal choreography --- */
+.result .eyebrow{animation:riseIn .5s both}
+.result h1{animation:riseIn .55s .05s both}
+.result .sub{animation:riseIn .55s .1s both}
+.hero{animation:heroIn .7s .12s cubic-bezier(.2,.8,.2,1) both}
+@keyframes heroIn{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
+.hero .shot svg{animation:floatY 4.5s ease-in-out .8s infinite}
+@keyframes floatY{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(1.5deg)}}
+.hero .shot::before{ /* rotating halo behind hero product */
+  content:"";position:absolute;top:50%;left:50%;width:230px;height:230px;margin:-115px 0 0 -115px;border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(166,212,0,.35),transparent 35%,transparent 65%,rgba(183,230,10,.3));
+  filter:blur(14px);animation:spin 14s linear infinite;z-index:0;
+}
+.hero .shot svg{position:relative;z-index:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+.specsheet{animation:riseIn .55s .2s both}
+.specsheet .row{opacity:0;animation:rowIn .45s cubic-bezier(.2,.8,.2,1) forwards}
+.specsheet .row:nth-child(1){animation-delay:.30s}.specsheet .row:nth-child(2){animation-delay:.38s}
+.specsheet .row:nth-child(3){animation-delay:.46s}.specsheet .row:nth-child(4){animation-delay:.54s}
+@keyframes rowIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+.why li{opacity:0;animation:rowIn .45s cubic-bezier(.2,.8,.2,1) forwards}
+.why li:nth-child(1){animation-delay:.5s}.why li:nth-child(2){animation-delay:.6s}
+.why li:nth-child(3){animation-delay:.7s}.why li:nth-child(4){animation-delay:.8s}
+.why li svg{stroke-dasharray:30;stroke-dashoffset:30;animation:draw .5s ease forwards}
+.why li:nth-child(1) svg{animation-delay:.6s}.why li:nth-child(2) svg{animation-delay:.7s}
+.why li:nth-child(3) svg{animation-delay:.8s}.why li:nth-child(4) svg{animation-delay:.9s}
+@keyframes draw{to{stroke-dashoffset:0}}
+.chip{animation:chipIn .4s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes chipIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+.altcard{transition:transform .25s cubic-bezier(.2,.8,.2,1.3),border-color .2s,box-shadow .25s}
+.altcard:hover{transform:translateY(-4px);border-color:var(--ink);box-shadow:var(--shadow)}
+.altcard:hover .ic svg{animation:wiggle .5s ease}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+.btn.primary svg{transition:transform .25s ease}
+.btn.primary:hover svg{transform:translate(3px,-3px)}
+
+/* --- celebratory confetti burst on result --- */
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;opacity:.95;
+  animation:confFall linear forwards}
+@keyframes confFall{
+  0%{transform:translateY(-12px) rotate(0);opacity:1}
+  100%{transform:translateY(105vh) rotate(720deg);opacity:.9}
+}
+
 @media (prefers-reduced-motion: reduce){
   *{animation:none!important;transition:none!important}
+  body::before,.hero .shot::before{display:none}
+  .opt,.specsheet .row,.why li{opacity:1!important}
+  .why li svg{stroke-dashoffset:0!important}
 }
 </style>
 </head>
 <body>
+<!-- ============ Shared SVG gradient/material sprite (referenced by all product renders) ============ -->
+<svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="bodyGrad" x1="0" y1="0" x2="0.25" y2="1">
+      <stop offset="0" stop-color="#CBEF52"/>
+      <stop offset=".48" stop-color="#A6D400"/>
+      <stop offset="1" stop-color="#7CA200"/>
+    </linearGradient>
+    <radialGradient id="bodyGradR" cx=".36" cy=".3" r=".85">
+      <stop offset="0" stop-color="#D4F268"/>
+      <stop offset=".55" stop-color="#A6D400"/>
+      <stop offset="1" stop-color="#6F9700"/>
+    </radialGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".6"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="plateGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#E4E6DB"/>
+    </linearGradient>
+    <radialGradient id="screwGrad" cx=".34" cy=".28" r=".85">
+      <stop offset="0" stop-color="#F6F8FA"/>
+      <stop offset=".5" stop-color="#C0C4CB"/>
+      <stop offset="1" stop-color="#787E88"/>
+    </radialGradient>
+    <linearGradient id="steelGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#DBDEE4"/>
+      <stop offset=".5" stop-color="#A7ABB4"/>
+      <stop offset="1" stop-color="#767B85"/>
+    </linearGradient>
+    <linearGradient id="termGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#33363F"/>
+      <stop offset=".5" stop-color="#1B1D22"/>
+      <stop offset="1" stop-color="#101216"/>
+    </linearGradient>
+    <linearGradient id="screenGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#161B24"/>
+      <stop offset="1" stop-color="#090B0F"/>
+    </linearGradient>
+    <radialGradient id="ledGlow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#D4FF3B"/>
+      <stop offset=".6" stop-color="#A6D400"/>
+      <stop offset="1" stop-color="#A6D400" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9CD0FF"/>
+      <stop offset="1" stop-color="#4C90E8"/>
+    </linearGradient>
+  </defs>
+</svg>
+
 <header class="site">
   <div class="wrap">
     <a class="logo" href="./" onclick="return goIntro(event)">

@@ -12,35 +12,41 @@
    Grund (Ergebnis) gleichermaßen lesbar.
 --------------------------------------------------------------------- */
 const C = {
-  body:'#A6D400', edge:'#6E9600', term:'#1a1c21', screw:'#0c0d10',
+  body:'#A6D400', edge:'#5E8000', edgeDark:'#4a6600', term:'#1a1c21', screw:'#0c0d10',
   plate:'#F7F8F2', ink:'#16181C', white:'#ffffff', glow:'#B7E60A', dark:'#22242b'
 };
 
-function terminals(y, n){
-  // n dark terminal blocks with screw slot at vertical position y
-  const total = 96, pad = 14, w = (total - pad*2);
-  const bw = w / n - 3;
-  let s = '';
+/* A realistic screw-terminal connector bar (dark plastic block + metallic screws).
+   Rendered at the top or bottom edge of a module, like a real Shelly. */
+function connector(x, y, w, n){
+  const h = 11;
+  let s = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="url(#termGrad)"/>`
+        + `<rect x="${x+1}" y="${y+1}" width="${w-2}" height="3.4" rx="2" fill="#3a3d45" opacity=".55"/>`;
+  const pad = 8;
   for(let i=0;i<n;i++){
-    const x = pad + i*(bw+3) + 12;
-    s += `<rect x="${x}" y="${y}" width="${bw}" height="9" rx="2" fill="${C.term}"/>`
-      +  `<circle cx="${x+bw/2}" cy="${y+4.5}" r="2.4" fill="${C.screw}"/>`
-      +  `<rect x="${x+bw/2-2.6}" y="${y+3.6}" width="5.2" height="1.8" rx="1" fill="#3a3d45"/>`;
+    const cx = x + pad + (w-2*pad) * (n===1 ? .5 : i/(n-1));
+    const cy = y + h/2;
+    s += `<circle cx="${cx}" cy="${cy}" r="3.5" fill="url(#screwGrad)" stroke="#000" stroke-opacity=".35"/>`
+      +  `<line x1="${cx-2}" y1="${cy}" x2="${cx+2}" y2="${cy}" stroke="#000" stroke-opacity=".5" stroke-width="1.1" stroke-linecap="round"/>`;
   }
   return s;
 }
 
+/* Glossy lime module body with bezel, top highlight, screw terminals and a printed label plate. */
 function moduleBody(w,h,label,accent){
   const x=(120-w)/2, y=(120-h)/2;
-  const plateW = Math.min(w-20, 60);
+  const plateW = Math.min(w-22, 62), plateH = 24;
+  const nT = Math.min(4, Math.max(2, Math.round(w/24)));
   return `
-    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="11" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <rect x="${x+3}" y="${y+3}" width="${w-6}" height="${h-6}" rx="8" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
-    ${terminals(y-4, Math.min(4, Math.max(2, Math.round(w/24))))}
-    ${terminals(y+h-5, Math.min(4, Math.max(2, Math.round(w/24))))}
-    <rect x="${60-plateW/2}" y="${60-11}" width="${plateW}" height="22" rx="5" fill="${C.plate}" stroke="rgba(22,24,28,.15)"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="13" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+    <rect x="${x+2.5}" y="${y+2.5}" width="${w-5}" height="${h-5}" rx="10.5" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.3"/>
+    <rect x="${x+4}" y="${y+4}" width="${w-8}" height="${(h-8)*.52}" rx="9" fill="url(#gloss)"/>
+    ${connector(x+6, y-6, w-12, nT)}
+    ${connector(x+6, y+h-5, w-12, nT)}
+    <rect x="${60-plateW/2}" y="${60-plateH/2}" width="${plateW}" height="${plateH}" rx="6" fill="url(#plateGrad)" stroke="rgba(22,24,28,.16)"/>
+    <rect x="${60-plateW/2+2}" y="${60-plateH/2+1.5}" width="${plateW-4}" height="2.4" rx="1.5" fill="#fff" opacity=".7"/>
     ${accent||''}
-    <text x="60" y="60" font-family="'IBM Plex Mono',monospace" font-size="12" font-weight="600" fill="${C.ink}" text-anchor="middle" dominant-baseline="central">${label}</text>
+    <text x="60" y="60.5" font-family="'IBM Plex Mono',monospace" font-size="12" font-weight="700" letter-spacing=".4" fill="${C.ink}" text-anchor="middle" dominant-baseline="central">${label}</text>
   `;
 }
 
@@ -49,144 +55,181 @@ function svgWrap(inner){
 }
 
 const ICONS = {
-  relay:(o={})=>{ const mini=o.mini; const w=mini?70:88,h=mini?48:60;
+  relay:(o={})=>{ const mini=o.mini; const w=mini?72:88,h=mini?50:60;
     return svgWrap(moduleBody(w,h, o.label||(o.pm?'PM':'1'))); },
-  relay2:(o={})=> svgWrap(moduleBody(90,62, o.pm?'2PM':'2',
-    `<circle cx="46" cy="49" r="2.3" fill="${C.edge}"/><circle cx="74" cy="49" r="2.3" fill="${C.edge}"/>`)),
-  noNeutral:(o={})=> svgWrap(moduleBody(o.ch===2?90:78, 58, o.ch===2?'2L':'1L',
-    `<text x="60" y="80" font-family="'IBM Plex Mono',monospace" font-size="7" fill="${C.edge}" text-anchor="middle">NO&nbsp;N</text>`)),
-  input:()=> svgWrap(moduleBody(86,60,'i4',
-    `<g fill="${C.edge}"><rect x="40" y="46" width="7" height="7" rx="1.5"/><rect x="50" y="46" width="7" height="7" rx="1.5"/><rect x="60" y="46" width="7" height="7" rx="1.5"/><rect x="70" y="46" width="7" height="7" rx="1.5"/></g>`)),
-  dimmer:()=> svgWrap(moduleBody(88,60,'',
-    `<defs><linearGradient id="dg" x1="0" x2="1"><stop offset="0" stop-color="#2a2c33"/><stop offset="1" stop-color="#f7f8f2"/></linearGradient></defs>
-     <rect x="36" y="55" width="48" height="10" rx="5" fill="url(#dg)" stroke="rgba(22,24,28,.2)"/>
-     <circle cx="72" cy="60" r="6" fill="${C.white}" stroke="${C.ink}" stroke-width="1.5"/>`)),
-  cover:()=> svgWrap(moduleBody(90,62,'',
-    `<path d="M52 54 l8 -8 l8 8" fill="none" stroke="${C.ink}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-     <path d="M52 66 l8 8 l8 -8" fill="none" stroke="${C.ink}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`)),
+  relay2:(o={})=> svgWrap(moduleBody(92,64, o.pm?'2PM':'2',
+    `<circle class="led-dot" cx="45" cy="49" r="2.6" fill="${C.glow}"/><circle class="led-dot" cx="75" cy="49" r="2.6" fill="${C.glow}"/>`)),
+  noNeutral:(o={})=> svgWrap(moduleBody(o.ch===2?92:80, 60, o.ch===2?'2L':'1L',
+    `<text x="60" y="81" font-family="'IBM Plex Mono',monospace" font-size="7" font-weight="600" fill="${C.edgeDark}" text-anchor="middle">NO&#8201;N</text>`)),
+  input:()=> svgWrap(moduleBody(88,62,'i4',
+    `<g fill="${C.edgeDark}"><rect x="39" y="47" width="7" height="6" rx="1.5"/><rect x="49" y="47" width="7" height="6" rx="1.5"/><rect x="64" y="47" width="7" height="6" rx="1.5"/><rect x="74" y="47" width="7" height="6" rx="1.5"/></g>`)),
+  dimmer:()=> svgWrap(moduleBody(90,62,'',
+    `<rect x="34" y="54" width="52" height="12" rx="6" fill="url(#screenGrad)" stroke="rgba(22,24,28,.25)"/>
+     <rect x="36" y="56.5" width="30" height="3.6" rx="2" fill="${C.glow}" opacity=".85"/>
+     <circle cx="72" cy="60" r="7" fill="url(#plateGrad)" stroke="${C.ink}" stroke-width="1.4"/>
+     <circle class="led-dot" cx="72" cy="60" r="2.4" fill="${C.glow}"/>`)),
+  cover:()=> svgWrap(moduleBody(92,64,'',
+    `<path d="M52 53 l8 -8 l8 8" fill="none" stroke="${C.ink}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+     <path d="M52 67 l8 8 l8 -8" fill="none" stroke="${C.ink}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`)),
   din:(o={})=>{ const n=o.ch||1; const disp=o.display;
-    let leds=''; for(let i=0;i<Math.min(n,4);i++){leds+=`<circle cx="${44+i*11}" cy="92" r="3" fill="${C.edge}"/>`;}
+    let leds=''; for(let i=0;i<Math.min(n,4);i++){leds+=`<circle class="led-dot" cx="${44+i*11}" cy="94" r="3" fill="${C.glow}"/>`;}
     return svgWrap(`
-      <rect x="30" y="12" width="60" height="96" rx="7" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-      <rect x="33" y="15" width="54" height="90" rx="5" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.4"/>
-      <rect x="34" y="8" width="52" height="7" rx="2" fill="${C.term}"/>
-      <rect x="34" y="105" width="52" height="7" rx="2" fill="${C.term}"/>
-      ${disp?`<rect x="40" y="30" width="40" height="26" rx="3" fill="#101318"/><text x="60" y="43" font-family="'IBM Plex Mono',monospace" font-size="8" fill="${C.glow}" text-anchor="middle">${o.label||''}</text>`
-             :`<rect x="40" y="34" width="40" height="20" rx="4" fill="${C.plate}"/><text x="60" y="44" font-family="'IBM Plex Mono',monospace" font-size="10" font-weight="600" fill="${C.ink}" text-anchor="middle">${o.label||'PRO'}</text>`}
+      <rect x="30" y="10" width="60" height="100" rx="9" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+      <rect x="32.5" y="12.5" width="55" height="95" rx="7" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.3"/>
+      <rect x="34" y="13" width="52" height="30" rx="7" fill="url(#gloss)"/>
+      ${connector(34, 3, 52, Math.min(3, n+1))}
+      ${connector(34, 106, 52, Math.min(3, n+1))}
+      ${disp
+        ? `<rect x="39" y="30" width="42" height="28" rx="4" fill="url(#screenGrad)" stroke="#000" stroke-opacity=".35"/>
+           <rect x="41" y="32" width="38" height="9" rx="2" fill="#000" opacity=".25"/>
+           <text class="screen-text" x="60" y="45" font-family="'IBM Plex Mono',monospace" font-size="8" font-weight="600" fill="${C.glow}" text-anchor="middle">${o.label||''}</text>`
+        : `<rect x="38" y="33" width="44" height="23" rx="5" fill="url(#plateGrad)" stroke="rgba(22,24,28,.16)"/>
+           <rect x="40" y="34.5" width="40" height="2.4" rx="1.5" fill="#fff" opacity=".7"/>
+           <text x="60" y="45.5" font-family="'IBM Plex Mono',monospace" font-size="10" font-weight="700" fill="${C.ink}" text-anchor="middle">${o.label||'PRO'}</text>`}
       ${leds}
     `); },
   meter:()=> svgWrap(`
-    <rect x="18" y="30" width="60" height="60" rx="10" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <rect x="21" y="33" width="54" height="54" rx="7" fill="none" stroke="rgba(255,255,255,.32)" stroke-width="1.3"/>
-    <rect x="34" y="50" width="28" height="20" rx="4" fill="${C.plate}"/>
-    <text x="48" y="61" font-family="'IBM Plex Mono',monospace" font-size="9" font-weight="600" fill="${C.ink}" text-anchor="middle">EM</text>
-    <line x1="95" y1="18" x2="95" y2="102" stroke="${C.dark}" stroke-width="5" stroke-linecap="round"/>
-    <path d="M95 44 a16 16 0 1 0 0 32 a16 16 0 1 0 0 -32" fill="none" stroke="${C.ink}" stroke-width="5"/>
-    <path d="M95 46 a14 14 0 1 1 -8 3" fill="none" stroke="${C.edge}" stroke-width="3.5"/>
+    <path d="M92 20 v76" stroke="#2c2f37" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="92" cy="58" r="18" fill="none" stroke="#1c1e24" stroke-width="6"/>
+    <path class="led-ring" d="M92 42 a16 16 0 1 1 -11 4.6" fill="none" stroke="${C.glow}" stroke-width="4" stroke-linecap="round"/>
+    <rect x="16" y="30" width="60" height="60" rx="12" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+    <rect x="18.5" y="32.5" width="55" height="55" rx="9.5" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.3"/>
+    <rect x="20" y="33" width="52" height="26" rx="8" fill="url(#gloss)"/>
+    <rect x="30" y="48" width="32" height="22" rx="4" fill="url(#screenGrad)"/>
+    <text class="screen-text" x="46" y="60" font-family="'IBM Plex Mono',monospace" font-size="9" font-weight="600" fill="${C.glow}" text-anchor="middle">EM</text>
+    ${connector(22, 84, 48, 3)}
   `),
   plugRound:(o={})=> svgWrap(`
-    <circle cx="60" cy="54" r="34" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <circle cx="60" cy="54" r="30" fill="none" stroke="${o.led!==false?C.glow:'rgba(255,255,255,.4)'}" stroke-width="3" opacity=".85"/>
-    <circle cx="60" cy="54" r="17" fill="${C.plate}"/>
-    <circle cx="53" cy="54" r="3" fill="${C.term}"/><circle cx="67" cy="54" r="3" fill="${C.term}"/>
-    <rect x="54" y="88" width="5" height="16" rx="2" fill="${C.term}"/>
-    <rect x="61" y="88" width="5" height="16" rx="2" fill="${C.term}"/>
+    <rect x="53.5" y="86" width="6" height="20" rx="3" fill="url(#steelGrad)"/>
+    <rect x="61" y="86" width="6" height="20" rx="3" fill="url(#steelGrad)"/>
+    <circle cx="60" cy="52" r="36" fill="url(#bodyGradR)" stroke="${C.edge}" stroke-width="1.6"/>
+    <path d="M60 16 a36 36 0 0 1 30 16 a44 44 0 0 0 -60 0 a36 36 0 0 1 30 -16z" fill="url(#gloss)"/>
+    <circle class="led-ring" cx="60" cy="52" r="30" fill="none" stroke="${o.led!==false?C.glow:'rgba(255,255,255,.45)'}" stroke-width="3.4"/>
+    <circle cx="60" cy="52" r="19" fill="url(#plateGrad)" stroke="rgba(22,24,28,.14)"/>
+    <circle cx="53" cy="52" r="3.4" fill="url(#screwGrad)"/><circle cx="67" cy="52" r="3.4" fill="url(#screwGrad)"/>
   `),
   plugSquare:(o={})=> svgWrap(`
-    <rect x="26" y="20" width="68" height="66" rx="14" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <rect x="29" y="23" width="62" height="60" rx="11" fill="none" stroke="rgba(255,255,255,.32)" stroke-width="1.3"/>
-    <circle cx="60" cy="52" r="15" fill="${C.plate}"/>
-    <circle cx="54" cy="52" r="2.6" fill="${C.term}"/><circle cx="66" cy="52" r="2.6" fill="${C.term}"/>
-    ${o.out?`<path d="M40 32 a5 5 0 0 1 10 0" fill="none" stroke="${C.ink}" stroke-width="2"/>`:''}
-    <rect x="54" y="86" width="5" height="15" rx="2" fill="${C.term}"/>
-    <rect x="61" y="86" width="5" height="15" rx="2" fill="${C.term}"/>
+    <rect x="53.5" y="82" width="6" height="20" rx="3" fill="url(#steelGrad)"/>
+    <rect x="61" y="82" width="6" height="20" rx="3" fill="url(#steelGrad)"/>
+    <rect x="24" y="16" width="72" height="70" rx="16" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+    <rect x="26.5" y="18.5" width="67" height="65" rx="13.5" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.3"/>
+    <rect x="28" y="19" width="64" height="30" rx="12" fill="url(#gloss)"/>
+    <circle cx="60" cy="50" r="17" fill="url(#plateGrad)" stroke="rgba(22,24,28,.14)"/>
+    <circle cx="53" cy="50" r="3" fill="url(#screwGrad)"/><circle cx="67" cy="50" r="3" fill="url(#screwGrad)"/>
+    ${o.out?`<path d="M40 28 a6 6 0 0 1 12 0 v4" fill="none" stroke="${C.ink}" stroke-width="2.2" stroke-linecap="round"/><circle class="led-dot" cx="80" cy="30" r="3" fill="${C.glow}"/>`
+           :`<circle class="led-dot" cx="80" cy="30" r="3" fill="${C.glow}"/>`}
   `),
   strip:()=> svgWrap(`
-    <rect x="14" y="40" width="92" height="40" rx="12" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <rect x="17" y="43" width="86" height="34" rx="9" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.2"/>
-    ${[26,49,72,95].map(cx=>`<circle cx="${cx}" cy="60" r="9" fill="${C.plate}"/><circle cx="${cx-3}" cy="60" r="1.7" fill="${C.term}"/><circle cx="${cx+3}" cy="60" r="1.7" fill="${C.term}"/>`).join('')}
+    <rect x="12" y="40" width="96" height="42" rx="14" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+    <rect x="14.5" y="42.5" width="91" height="37" rx="11.5" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="1.2"/>
+    <rect x="16" y="43" width="88" height="16" rx="9" fill="url(#gloss)"/>
+    ${[27,50,73,96].map(cx=>`<circle cx="${cx}" cy="61" r="9.5" fill="url(#plateGrad)" stroke="rgba(22,24,28,.12)"/><circle cx="${cx-3}" cy="61" r="1.9" fill="url(#screwGrad)"/><circle cx="${cx+3}" cy="61" r="1.9" fill="url(#screwGrad)"/>`).join('')}
+    <circle class="led-dot" cx="19" cy="47" r="2.4" fill="${C.glow}"/>
   `),
   motion:()=> svgWrap(`
-    <rect x="36" y="30" width="48" height="60" rx="12" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <ellipse cx="60" cy="52" rx="15" ry="13" fill="#101318"/>
-    <ellipse cx="56" cy="48" rx="4" ry="3" fill="rgba(183,230,10,.7)"/>
-    <path d="M92 40 a24 24 0 0 1 0 34" fill="none" stroke="${C.edge}" stroke-width="3" stroke-linecap="round"/>
-    <path d="M98 34 a34 34 0 0 1 0 46" fill="none" stroke="${C.edge}" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+    <path d="M90 40 a26 26 0 0 1 0 34" fill="none" stroke="${C.glow}" stroke-width="3" stroke-linecap="round" opacity=".9" class="led-ring"/>
+    <path d="M98 32 a38 38 0 0 1 0 50" fill="none" stroke="${C.edgeDark}" stroke-width="2.6" stroke-linecap="round" opacity=".45"/>
+    <rect x="34" y="28" width="50" height="64" rx="15" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+    <rect x="36.5" y="30.5" width="45" height="59" rx="12.5" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="1.2"/>
+    <rect x="38" y="31" width="42" height="26" rx="12" fill="url(#gloss)"/>
+    <ellipse cx="59" cy="52" rx="16" ry="14" fill="url(#screenGrad)"/>
+    <ellipse cx="54" cy="47" rx="4.5" ry="3.4" fill="rgba(183,230,10,.75)"/>
+    <circle class="led-dot" cx="59" cy="80" r="3" fill="${C.glow}"/>
   `),
   presence:()=> svgWrap(`
-    <circle cx="60" cy="60" r="30" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <circle cx="60" cy="60" r="4" fill="${C.ink}"/>
-    ${[12,20,28].map((r,i)=>`<circle cx="60" cy="60" r="${r}" fill="none" stroke="${C.ink}" stroke-width="1.6" opacity="${.7-i*.18}"/>`).join('')}
-    <circle cx="86" cy="86" r="7" fill="${C.plate}" stroke="${C.edge}"/>
+    <circle cx="60" cy="60" r="32" fill="url(#bodyGradR)" stroke="${C.edge}" stroke-width="1.6"/>
+    <path d="M60 28 a32 32 0 0 1 26 14 a40 40 0 0 0 -52 0 a32 32 0 0 1 26 -14z" fill="url(#gloss)"/>
+    ${[13,21,29].map((r,i)=>`<circle class="led-ring" style="animation-delay:${i*.3}s" cx="60" cy="60" r="${r}" fill="none" stroke="${C.ink}" stroke-width="1.8" opacity="${.75-i*.2}"/>`).join('')}
+    <circle cx="60" cy="60" r="4.5" fill="${C.ink}"/>
+    <circle class="led-dot" cx="86" cy="86" r="4.5" fill="${C.glow}"/>
   `),
   contact:()=> svgWrap(`
-    <rect x="24" y="34" width="44" height="52" rx="10" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <rect x="27" y="37" width="38" height="46" rx="7" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.2"/>
-    <rect x="76" y="42" width="20" height="36" rx="6" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <line x1="68" y1="60" x2="76" y2="60" stroke="${C.edge}" stroke-width="2" stroke-dasharray="2 3"/>
+    <rect x="22" y="32" width="46" height="56" rx="12" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+    <rect x="24.5" y="34.5" width="41" height="51" rx="9.5" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="1.2"/>
+    <rect x="26" y="35" width="38" height="22" rx="9" fill="url(#gloss)"/>
+    <circle class="led-dot" cx="45" cy="78" r="3" fill="${C.glow}"/>
+    <rect x="78" y="40" width="20" height="40" rx="7" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+    <rect x="80" y="42" width="16" height="16" rx="6" fill="url(#gloss)"/>
+    <line x1="68" y1="60" x2="78" y2="60" stroke="${C.edgeDark}" stroke-width="2.4" stroke-dasharray="2 3" stroke-linecap="round"/>
   `),
   thermo:()=> svgWrap(`
-    <rect x="30" y="26" width="60" height="68" rx="13" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <rect x="38" y="36" width="44" height="30" rx="4" fill="#EDEEE6" stroke="rgba(22,24,28,.18)"/>
-    <text x="60" y="52" font-family="'IBM Plex Mono',monospace" font-size="12" font-weight="600" fill="${C.ink}" text-anchor="middle">21°</text>
-    <path d="M60 74 c-6 6 -6 12 0 12 c6 0 6 -6 0 -12" fill="#79b3ff"/>
+    <rect x="30" y="24" width="60" height="72" rx="15" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+    <rect x="32.5" y="26.5" width="55" height="67" rx="12.5" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="1.2"/>
+    <rect x="34" y="27" width="52" height="28" rx="12" fill="url(#gloss)"/>
+    <rect x="38" y="35" width="44" height="32" rx="5" fill="#EBEDE4" stroke="rgba(22,24,28,.18)"/>
+    <text x="60" y="52" font-family="'IBM Plex Mono',monospace" font-size="12" font-weight="700" fill="${C.ink}" text-anchor="middle">21°</text>
+    <text x="60" y="63" font-family="'IBM Plex Mono',monospace" font-size="6.5" fill="${C.edgeDark}" text-anchor="middle">48% RH</text>
+    <path d="M60 76 c-6 6 -6 12 0 12 c6 0 6 -6 0 -12" fill="url(#waterGrad)"/>
   `),
   water:()=> svgWrap(`
-    <ellipse cx="58" cy="62" rx="36" ry="18" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <ellipse cx="58" cy="58" rx="36" ry="18" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <path d="M58 44 c-8 9 -8 16 0 16 c8 0 8 -7 0 -16" fill="#79b3ff"/>
-    <path d="M22 66 q-8 6 -14 2" fill="none" stroke="${C.dark}" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="60" cy="66" rx="38" ry="12" fill="url(#waterGrad)" opacity=".35"/>
+    <circle cx="60" cy="52" r="32" fill="url(#bodyGradR)" stroke="${C.edge}" stroke-width="1.6"/>
+    <path d="M60 20 a32 32 0 0 1 26 14 a40 40 0 0 0 -52 0 a32 32 0 0 1 26 -14z" fill="url(#gloss)"/>
+    <path d="M60 38 c-9 11 -9 19 0 19 c9 0 9 -8 0 -19z" fill="url(#waterGrad)"/>
+    <ellipse cx="56" cy="50" rx="2.6" ry="4" fill="#fff" opacity=".6"/>
+    <circle class="led-dot" cx="60" cy="76" r="3" fill="${C.glow}"/>
   `),
   smoke:()=> svgWrap(`
-    <circle cx="60" cy="60" r="34" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <circle cx="60" cy="60" r="29" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.4"/>
-    ${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return `<circle cx="${60+Math.cos(r)*18}" cy="${60+Math.sin(r)*18}" r="2.4" fill="${C.term}"/>`;}).join('')}
-    <circle cx="60" cy="60" r="6" fill="${C.plate}"/>
+    <circle cx="60" cy="58" r="36" fill="url(#bodyGradR)" stroke="${C.edge}" stroke-width="1.6"/>
+    <path d="M60 22 a36 36 0 0 1 30 16 a44 44 0 0 0 -60 0 a36 36 0 0 1 30 -16z" fill="url(#gloss)"/>
+    <circle cx="60" cy="58" r="30" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.4"/>
+    ${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return `<circle cx="${(60+Math.cos(r)*20).toFixed(1)}" cy="${(58+Math.sin(r)*20).toFixed(1)}" r="2.6" fill="${C.term}"/>`;}).join('')}
+    <circle class="led-dot" cx="60" cy="58" r="6" fill="${C.glow}"/>
   `),
   gas:()=> svgWrap(`
-    <rect x="28" y="28" width="64" height="64" rx="14" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <rect x="36" y="40" width="48" height="22" rx="4" fill="${C.plate}"/>
-    <text x="60" y="52" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" fill="${C.ink}" text-anchor="middle">CH₄</text>
+    <rect x="26" y="26" width="68" height="66" rx="16" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+    <rect x="28.5" y="28.5" width="63" height="61" rx="13.5" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="1.2"/>
+    <rect x="30" y="29" width="60" height="28" rx="13" fill="url(#gloss)"/>
+    <rect x="36" y="38" width="48" height="24" rx="5" fill="url(#screenGrad)"/>
+    <text class="screen-text" x="60" y="53" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" fill="${C.glow}" text-anchor="middle">CH&#8324;</text>
     <g stroke="${C.term}" stroke-width="2.4" stroke-linecap="round"><line x1="44" y1="72" x2="44" y2="80"/><line x1="52" y1="72" x2="52" y2="82"/><line x1="60" y1="72" x2="60" y2="80"/><line x1="68" y1="72" x2="68" y2="82"/><line x1="76" y1="72" x2="76" y2="80"/></g>
   `),
   trv:()=> svgWrap(`
-    <rect x="42" y="20" width="36" height="40" rx="8" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <circle cx="60" cy="72" r="26" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <circle cx="60" cy="72" r="19" fill="none" stroke="${C.ink}" stroke-width="2"/>
+    <rect x="42" y="16" width="36" height="42" rx="9" fill="url(#steelGrad)" stroke="${C.edgeDark}" stroke-width="1.2"/>
+    <rect x="44" y="18" width="32" height="10" rx="5" fill="#fff" opacity=".4"/>
+    <circle cx="60" cy="72" r="27" fill="url(#bodyGradR)" stroke="${C.edge}" stroke-width="1.6"/>
+    <path d="M60 45 a27 27 0 0 1 22 12 a34 34 0 0 0 -44 0 a27 27 0 0 1 22 -12z" fill="url(#gloss)"/>
+    <circle cx="60" cy="72" r="19" fill="none" stroke="${C.ink}" stroke-width="2.2"/>
+    ${[...Array(12)].map((_,i)=>{const a=i*30*Math.PI/180;return `<line x1="${(60+Math.cos(a)*19).toFixed(1)}" y1="${(72+Math.sin(a)*19).toFixed(1)}" x2="${(60+Math.cos(a)*22).toFixed(1)}" y2="${(72+Math.sin(a)*22).toFixed(1)}" stroke="${C.ink}" stroke-width="1.4" opacity=".5"/>`;}).join('')}
     <line x1="60" y1="72" x2="60" y2="56" stroke="${C.ink}" stroke-width="3" stroke-linecap="round"/>
-    <text x="60" y="94" font-family="'IBM Plex Mono',monospace" font-size="7" fill="${C.ink}" text-anchor="middle">TRV</text>
   `),
   button:()=> svgWrap(`
-    <rect x="30" y="30" width="60" height="60" rx="16" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <rect x="34" y="34" width="52" height="52" rx="13" fill="none" stroke="rgba(255,255,255,.32)" stroke-width="1.3"/>
-    <circle cx="60" cy="60" r="17" fill="${C.plate}" stroke="${C.edge}"/>
-    <circle cx="60" cy="60" r="8" fill="${C.body}" stroke="${C.edge}"/>
+    <rect x="28" y="28" width="64" height="64" rx="18" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+    <rect x="30.5" y="30.5" width="59" height="59" rx="15.5" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="1.3"/>
+    <rect x="32" y="31" width="56" height="28" rx="15" fill="url(#gloss)"/>
+    <circle cx="60" cy="60" r="18" fill="url(#plateGrad)" stroke="${C.edgeDark}" stroke-width="1.2"/>
+    <circle cx="60" cy="60" r="9" fill="url(#bodyGradR)" stroke="${C.edgeDark}"/>
   `),
   gateway:()=> svgWrap(`
-    <rect x="34" y="46" width="52" height="34" rx="9" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <circle cx="60" cy="63" r="4" fill="${C.ink}"/>
-    ${[9,17].map((r,i)=>`<path d="M${60-r} ${63-r} a${r*1.4} ${r*1.4} 0 0 1 ${r*2} 0" fill="none" stroke="${C.ink}" stroke-width="2" opacity="${.7-i*.3}"/>`).join('')}
-    <rect x="55" y="80" width="10" height="9" rx="2" fill="${C.term}"/>
+    <rect x="34" y="46" width="52" height="36" rx="10" fill="url(#bodyGrad)" stroke="${C.edge}" stroke-width="1.6"/>
+    <rect x="36" y="48" width="48" height="14" rx="8" fill="url(#gloss)"/>
+    <circle cx="60" cy="64" r="4" fill="${C.ink}"/>
+    ${[9,17].map((r,i)=>`<path class="led-ring" style="animation-delay:${i*.35}s" d="M${60-r} ${64-r} a${(r*1.4).toFixed(1)} ${(r*1.4).toFixed(1)} 0 0 1 ${r*2} 0" fill="none" stroke="${C.ink}" stroke-width="2" opacity="${.7-i*.3}"/>`).join('')}
+    <rect x="55" y="82" width="10" height="10" rx="2" fill="url(#steelGrad)"/>
   `),
   panel:()=> svgWrap(`
-    <rect x="18" y="26" width="84" height="68" rx="10" fill="#16181c" stroke="#2a2c33" stroke-width="2"/>
-    <rect x="24" y="32" width="72" height="56" rx="5" fill="#0c0e12"/>
-    <rect x="30" y="38" width="30" height="20" rx="3" fill="${C.body}"/>
-    <rect x="64" y="38" width="26" height="9" rx="2" fill="#2f333d"/>
-    <rect x="64" y="50" width="26" height="8" rx="2" fill="#2f333d"/>
-    <rect x="30" y="62" width="60" height="8" rx="2" fill="#22252d"/>
-    <circle cx="35" cy="80" r="4" fill="${C.glow}"/><rect x="46" y="77" width="20" height="6" rx="3" fill="#2f333d"/>
+    <rect x="16" y="24" width="88" height="72" rx="12" fill="#1a1c22" stroke="#2f333d" stroke-width="2"/>
+    <rect x="22" y="30" width="76" height="60" rx="6" fill="url(#screenGrad)"/>
+    <rect x="28" y="36" width="32" height="22" rx="4" fill="url(#bodyGrad)"/>
+    <text x="44" y="50" font-family="'IBM Plex Mono',monospace" font-size="8" font-weight="700" fill="${C.ink}" text-anchor="middle">21°</text>
+    <rect x="64" y="36" width="28" height="9" rx="2" fill="#333844"/>
+    <rect x="64" y="49" width="28" height="9" rx="2" fill="#333844"/>
+    <rect x="28" y="63" width="64" height="9" rx="2" fill="#262a33"/>
+    <circle class="led-dot" cx="33" cy="82" r="4" fill="${C.glow}"/>
+    <rect x="44" y="78" width="22" height="7" rx="3.5" fill="#333844"/>
+    <rect x="72" y="78" width="20" height="7" rx="3.5" fill="#333844"/>
   `),
   bulb:()=> svgWrap(`
-    <path d="M60 24 a26 26 0 0 1 16 46 c-4 4 -5 8 -5 12 h-22 c0 -4 -1 -8 -5 -12 a26 26 0 0 1 16 -46z" fill="${C.body}" stroke="${C.edge}" stroke-width="2"/>
-    <rect x="50" y="84" width="20" height="6" rx="2" fill="${C.term}"/>
-    <rect x="52" y="92" width="16" height="5" rx="2" fill="${C.term}"/>
-    <path d="M52 56 l6 8 l4 -14 l4 10" fill="none" stroke="rgba(22,24,28,.4)" stroke-width="2"/>
+    <path d="M60 22 a27 27 0 0 1 17 48 c-4 4 -5 8 -5 12 h-24 c0 -4 -1 -8 -5 -12 a27 27 0 0 1 17 -48z" fill="url(#bodyGradR)" stroke="${C.edge}" stroke-width="1.6"/>
+    <path d="M46 40 a26 26 0 0 1 24 -14 a20 20 0 0 0 -18 20z" fill="url(#gloss)"/>
+    <rect x="49" y="83" width="22" height="6" rx="2" fill="url(#steelGrad)"/>
+    <rect x="51" y="91" width="18" height="5" rx="2" fill="url(#steelGrad)"/>
+    <path d="M52 55 l6 8 l4 -14 l4 10" fill="none" stroke="rgba(22,24,28,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   `),
   strip_led:()=> svgWrap(`
-    <rect x="16" y="52" width="88" height="16" rx="4" fill="${C.dark}"/>
-    ${[26,42,58,74,90].map((x,i)=>`<circle cx="${x}" cy="60" r="4.5" fill="${['#ff5a5a','#ffd24a',C.body,'#5ab0ff','#c05aff'][i]}"/>`).join('')}
-    <rect x="16" y="52" width="88" height="16" rx="4" fill="none" stroke="#3a3d45" stroke-width="1.4"/>
+    <rect x="14" y="50" width="92" height="20" rx="6" fill="url(#screenGrad)" stroke="#3a3d45" stroke-width="1.4"/>
+    <rect x="16" y="52" width="88" height="6" rx="3" fill="#fff" opacity=".08"/>
+    ${[27,44,60,76,93].map((x,i)=>`<circle class="led-dot" style="animation-delay:${i*.18}s" cx="${x}" cy="60" r="5" fill="${['#ff5a5a','#ffd24a',C.body,'#5ab0ff','#c05aff'][i]}"/>`).join('')}
   `),
   // small category glyphs for the goal screen (still lime, simpler)
   gSwitch:()=> ICONS.relay({label:'ON'}),
@@ -853,12 +896,13 @@ function renderIntro(){
          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
        </button>
        <div class="introstats">
-         <div><b>40+</b><span>Geräte im Pool</span></div>
-         <div><b>8</b><span>Einsatzbereiche</span></div>
-         <div><b>~2 Min</b><span>bis zur Empfehlung</span></div>
+         <div><b data-to="40" data-suffix="+">40+</b><span>Geräte im Pool</span></div>
+         <div><b data-to="8">8</b><span>Einsatzbereiche</span></div>
+         <div><b data-to="2" data-prefix="~" data-suffix=" Min">~2 Min</b><span>bis zur Empfehlung</span></div>
        </div>
      </div>
    </div>`;
+  animateStats();
 }
 
 /* ---------- QUESTION ---------- */
@@ -974,11 +1018,56 @@ function renderResult(){
        <p class="disclaimer">Inoffizielles Hilfstool, nicht mit Shelly/Allterco Robotics verbunden. Produktnamen und Marken gehören ihren Eigentümern. Preise sind grobe Orientierungswerte und schwanken je nach Händler und Zeitpunkt. Verfügbarkeit, Zulassungen (z. B. Nullleiter-Pflicht, Absicherung) und Modellvarianten (EU/US/UK/ANZ) bitte vor dem Kauf prüfen – bei Festinstallation im Zweifel eine Elektrofachkraft hinzuziehen.<br><br>Dein Weg: ${path}</p>
      </section>
    </div>`;
+  celebrate();
 }
 
 /* ---------- helpers ---------- */
 function check(){ return `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>`; }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- flourishes ---------- */
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* Celebratory confetti burst when a recommendation appears. */
+function celebrate(){
+  if(reduceMotion) return;
+  const layer = document.createElement('div');
+  layer.className = 'confetti';
+  const colors = ['#A6D400','#B7E60A','#79b3ff','#ffd24a','#ff6b6b','#16181C'];
+  const N = 46;
+  for(let i=0;i<N;i++){
+    const p = document.createElement('i');
+    const c = colors[i % colors.length];
+    p.style.background = c;
+    p.style.left = Math.random()*100 + 'vw';
+    p.style.animationDuration = (2.2 + Math.random()*1.6) + 's';
+    p.style.animationDelay = (Math.random()*0.35) + 's';
+    p.style.transform = `rotate(${Math.random()*360}deg)`;
+    if(i % 3 === 0){ p.style.borderRadius = '50%'; p.style.width = '8px'; p.style.height = '8px'; }
+    layer.appendChild(p);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 4200);
+}
+
+/* Count-up animation for the intro stat numbers. */
+function animateStats(){
+  if(reduceMotion) return;
+  app.querySelectorAll('.introstats b[data-to]').forEach(el=>{
+    const to = parseFloat(el.dataset.to);
+    const suffix = el.dataset.suffix || '';
+    const prefix = el.dataset.prefix || '';
+    const dur = 1100, t0 = performance.now();
+    const step = now=>{
+      const k = Math.min(1, (now - t0)/dur);
+      const eased = 1 - Math.pow(1-k, 3);
+      const val = Math.round(to * eased);
+      el.textContent = prefix + val + suffix;
+      if(k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
 
 /* expose for inline handlers */
 window.goIntro = goIntro;
