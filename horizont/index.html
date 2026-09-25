@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Horizont – Opus 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;500&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05060a; --fg: #e9e4d8; --muted: #8a8578; --accent: #e8b25c; --accent2: #6fa8ff;
+    --line: rgba(233, 228, 216, .12); --wave: rgba(233, 228, 216, .22);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font-family: Inter, system-ui, sans-serif; }
+  canvas#sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+  main { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 8vh 16px 64px; }
+  .kicker { letter-spacing: .35em; text-transform: uppercase; font-size: 12px; color: var(--muted); }
+  h1 { font-family: "Cormorant Garamond", serif; font-weight: 300; font-size: clamp(28px, 7.4vw, 84px);
+       letter-spacing: .03em; overflow-wrap: anywhere; margin: .15em 0 .1em; line-height: 1; }
+  .sub { font-family: "Cormorant Garamond", serif; font-size: clamp(18px, 2.6vw, 24px); color: var(--muted); margin: 0 0 40px; }
+  .player { border: 1px solid var(--line); border-radius: 18px; padding: 22px; background: rgba(8, 10, 16, .6);
+            backdrop-filter: blur(6px); }
+  .row { display: flex; align-items: center; gap: 18px; }
+  button.play { width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--accent); background: transparent;
+                color: var(--accent); cursor: pointer; flex: none; display: grid; place-items: center; transition: .2s; }
+  button.play:hover { background: rgba(232, 178, 92, .12); }
+  button.play svg { width: 26px; height: 26px; fill: currentColor; }
+  .now { flex: 1; min-width: 0; }
+  .now .mv { font-family: "Cormorant Garamond", serif; font-size: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .now .tm { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; margin-top: 2px; }
+  .wave { position: relative; margin-top: 20px; height: 110px; cursor: pointer; }
+  .wave canvas { width: 100%; height: 100%; display: block; }
+  .chapters { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 18px; }
+  .ch { border: 1px solid var(--line); border-radius: 12px; padding: 12px; cursor: pointer; transition: .2s; background: transparent;
+        color: inherit; text-align: left; font: inherit; }
+  .ch:hover { border-color: rgba(232, 178, 92, .5); }
+  .ch.on { border-color: var(--accent); background: rgba(232, 178, 92, .07); }
+  .ch .n { font-family: "Cormorant Garamond", serif; font-size: 22px; color: var(--accent); }
+  .ch .t { font-size: 14px; margin-top: 2px; }
+  .ch .s { font-size: 12px; color: var(--muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  section.notes { margin-top: 48px; line-height: 1.7; color: #cfc9bb; font-size: 15px; }
+  section.notes h2 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 30px; color: var(--fg); margin: 36px 0 8px; }
+  section.notes b { color: var(--fg); font-weight: 600; }
+  .hint { color: var(--muted); font-size: 13px; margin-top: 14px; }
+  a { color: var(--accent); }
+  @media (max-width: 680px) {
+    .chapters { grid-template-columns: repeat(2, 1fr); }
+    .wave { height: 80px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="sky"></canvas>
+<main>
+  <div class="kicker">Opus 1 · Ein Epos in einem Satz</div>
+  <h1>HORIZONT</h1>
+  <p class="sub">Vom Kornfeld über das Andocken bis zur Zeit selbst. Ein Werk, zwei Leitmotive, eine Reise von d-Moll nach D-Dur.</p>
+
+  <div class="player">
+    <div class="row">
+      <button class="play" id="play" aria-label="Abspielen">
+        <svg viewBox="0 0 24 24" id="icon"><path d="M7 4l14 8-14 8z"/></svg>
+      </button>
+      <div class="now">
+        <div class="mv" id="mv">I · Prolog</div>
+        <div class="tm"><span id="cur">0:00</span> / <span id="dur">6:27</span></div>
+      </div>
+    </div>
+    <div class="wave" id="wave"><canvas id="wc"></canvas></div>
+    <div class="chapters" id="chapters"></div>
+    <div class="hint">Mit Kopfhörern oder guten Lautsprechern hören, der Sub-Bass reicht bis 36 Hz.</div>
+  </div>
+  <audio id="audio" src="horizont.mp3" preload="metadata"></audio>
+
+  <section class="notes">
+    <h2>Ein Werk, zwei Leitmotive</h2>
+    <p><b>„Hoffnung"</b> ist eine lyrische Linie, zuerst am Flügel, zuletzt im ganzen Orchester in D-Dur. <b>„Schicksal"</b> ist eine düster-heroische Blechfanfare in D-Phrygisch. Alles steht in d-Moll über der Folge i–VI–III–VII (d, B, F, C), und alles ist über eine Uhr verbunden, die nie ganz stillsteht.</p>
+    <p><b>I · Prolog</b> <i>(0:00)</i>: Die Uhr tickt allein. Der Flügel spielt „Hoffnung" über einem Orgel-Hauch, dann beschleunigt die Uhr von 72 auf 92 BPM in den nächsten Teil hinein.</p>
+    <p><b>II · Kornfeld</b> <i>(0:33)</i>: Ein warmes Orgel-Ostinato in Achteln und Sechzehnteln, die Celli singen das Motiv, dann Hörner, Chor und Geigen. Bei 1:35 das erste Tutti mit Pauken und voller Orgel.</p>
+    <p><b>III · Andocken</b> <i>(1:55)</i>: Ein Schlag, dann Stille bis auf ein unerbittliches Ostinato und die Uhr in Achteln. Staccato-Streicher, Taikos, Snare-Wirbel. Ab 2:39 steigen die Stufen d, Es, F, g, A, die Uhr läuft in Sechzehnteln. Bei 2:56 bricht die „Schicksal"-Fanfare in Hörnern, Posaunen, Trompeten und Männerchor durch. Dann folgt der <b>harte Schnitt</b> auf der Dominante.</p>
+    <p><b>IV · Zeit</b> <i>(3:15)</i>: Ein Zyklus, fünfmal geschichtet: Flügel, Streicher mit den Celli, Hörner mit dem Zeit-Motiv der Geigen, das Tutti in Moll.</p>
+    <p><b>V · D-Dur</b> <i>(5:15)</i>: Alles wendet sich nach D-Dur, zur Folge I–♭VI–♭III–♭VII. Trompeten, Geigen und Chor singen „Hoffnung", dazu Glocken.</p>
+    <p><b>VI · Epilog</b> <i>(5:49)</i>: Ein letzter Akkord, dann erinnert sich der Flügel. Die Uhr wird langsamer und bleibt stehen.</p>
+    <h2>Wie es entstanden ist</h2>
+    <p>Jede Note ist Python-Code. Das Orchester stammt aus der <i>Aegean Symphonic Orchestra</i>-Soundfont (Virtual Playing Orchestra) mit Salamander-Flügel. Die Orgel ist additiv synthetisiert und warm registriert, gedoppelt mit einer gesampelten Pfeifenorgel. Staccati sind geformte One-Shots, dazu kommen ein Sinus-plus-Reese-Sub-Bass und humanisiertes Timing (±15 ms). Der Hall ist hybrid: echter Konzertsaal (EchoThief) plus 4,2-s-Hallfahne, 31 % wet. Mastering: Hochpass bei 30 Hz, +2,5 dB bei 55 Hz, sanfte Höhen, True-Peak-Limiter auf −1 dBTP mit max. 3 dB Gain-Reduktion. 0 geclippte Samples.</p>
+    <p>Quellcode: <a href="source/">source/</a></p>
+  </section>
+</main>
+<script>
+const DATA = {"peaks": [0.0, 0.0, 0.008, 0.0, 0.006, 0.0, 0.008, 0.0, 0.006, 0.0, 0.008, 0.0, 0.006, 0.008, 0.001, 0.006, 0.001, 0.17, 0.405, 0.28, 0.209, 0.203, 0.217, 0.321, 0.264, 0.334, 0.334, 0.184, 0.151, 0.227, 0.162, 0.157, 0.153, 0.393, 0.36, 0.223, 0.196, 0.208, 0.213, 0.29, 0.215, 0.437, 0.293, 0.24, 0.228, 0.206, 0.183, 0.153, 0.247, 0.375, 0.282, 0.218, 0.204, 0.21, 0.279, 0.231, 0.345, 0.355, 0.22, 0.176, 0.267, 0.213, 0.19, 0.187, 0.444, 0.451, 0.326, 0.225, 0.187, 0.232, 0.182, 0.369, 0.469, 0.303, 0.181, 0.165, 0.159, 0.155, 0.199, 0.193, 0.187, 0.184, 0.198, 0.202, 0.193, 0.209, 0.215, 0.223, 0.247, 0.241, 0.298, 0.263, 0.241, 0.266, 0.279, 0.32, 0.301, 0.255, 0.248, 0.316, 0.313, 0.364, 0.303, 0.216, 0.226, 0.221, 0.234, 0.254, 0.281, 0.255, 0.267, 0.237, 0.257, 0.24, 0.24, 0.232, 0.199, 0.185, 0.23, 0.251, 0.26, 0.251, 0.23, 0.219, 0.203, 0.208, 0.327, 0.328, 0.334, 0.331, 0.38, 0.421, 0.4, 0.37, 0.367, 0.371, 0.378, 0.39, 0.431, 0.438, 0.451, 0.475, 0.513, 0.49, 0.441, 0.461, 0.429, 0.416, 0.454, 0.438, 0.46, 0.46, 0.445, 0.416, 0.457, 0.46, 0.466, 0.436, 0.449, 0.463, 0.537, 0.48, 0.427, 0.484, 0.488, 0.478, 0.495, 0.477, 0.49, 0.43, 0.395, 0.424, 0.36, 0.422, 0.479, 0.416, 0.44, 0.443, 0.442, 0.457, 0.456, 0.399, 0.434, 0.43, 0.42, 0.43, 0.466, 0.491, 0.53, 0.532, 0.515, 0.555, 0.491, 0.471, 0.531, 0.519, 0.518, 0.547, 0.488, 0.496, 0.541, 0.538, 0.592, 0.552, 0.49, 0.5, 0.522, 0.52, 0.507, 0.531, 0.524, 0.536, 0.554, 0.562, 0.604, 0.644, 0.553, 0.523, 0.551, 0.574, 0.669, 0.898, 0.772, 0.723, 0.735, 0.679, 0.733, 0.692, 0.528, 0.585, 0.625, 0.602, 0.662, 0.695, 0.666, 0.77, 0.753, 0.74, 0.791, 0.69, 0.678, 0.713, 0.669, 0.666, 0.721, 0.691, 0.684, 0.738, 0.714, 0.721, 0.764, 0.649, 0.672, 0.645, 0.6, 0.622, 0.745, 0.75, 0.715, 0.737, 0.728, 0.77, 0.75, 0.666, 0.67, 0.697, 0.698, 0.876, 0.88, 0.701, 0.58, 0.508, 0.491, 0.423, 0.391, 0.399, 0.408, 0.402, 0.365, 0.348, 0.343, 0.332, 0.322, 0.272, 0.296, 0.279, 0.28, 0.299, 0.395, 0.323, 0.281, 0.346, 0.302, 0.341, 0.25, 0.303, 0.337, 0.322, 0.394, 0.293, 0.308, 0.328, 0.312, 0.307, 0.315, 0.346, 0.351, 0.319, 0.345, 0.563, 0.417, 0.43, 0.415, 0.405, 0.607, 0.442, 0.515, 0.465, 0.417, 0.609, 0.529, 0.518, 0.466, 0.502, 0.636, 0.579, 0.559, 0.522, 0.482, 0.601, 0.469, 0.458, 0.488, 0.478, 0.627, 0.553, 0.494, 0.562, 0.453, 0.6, 0.557, 0.525, 0.542, 0.525, 0.596, 0.581, 0.562, 0.577, 0.524, 0.634, 0.535, 0.546, 0.641, 0.536, 0.65, 0.552, 0.528, 0.695, 0.52, 0.607, 0.548, 0.524, 0.67, 0.544, 0.653, 0.57, 0.518, 0.701, 0.585, 0.699, 0.687, 0.728, 0.803, 0.662, 0.75, 0.667, 0.717, 0.775, 0.689, 0.675, 0.7, 0.606, 0.713, 0.624, 0.683, 0.675, 0.604, 0.746, 0.618, 0.677, 0.76, 0.676, 0.791, 0.686, 0.776, 0.752, 0.762, 0.842, 0.693, 0.725, 0.764, 0.75, 0.832, 0.747, 0.825, 0.806, 0.777, 0.901, 0.807, 0.845, 0.934, 0.896, 0.931, 0.898, 0.936, 0.807, 0.792, 0.871, 0.808, 0.846, 0.972, 0.966, 0.939, 0.939, 0.996, 0.963, 0.944, 0.978, 0.899, 0.968, 0.911, 0.845, 0.971, 0.929, 0.982, 0.996, 0.991, 0.889, 0.903, 1.0, 0.963, 0.998, 0.895, 0.88, 0.873, 0.781, 0.926, 0.861, 0.865, 0.32, 0.111, 0.047, 0.018, 0.007, 0.179, 0.475, 0.372, 0.339, 0.236, 0.272, 0.199, 0.173, 0.149, 0.359, 0.495, 0.245, 0.115, 0.095, 0.092, 0.089, 0.082, 0.077, 0.356, 0.395, 0.321, 0.24, 0.219, 0.167, 0.135, 0.116, 0.108, 0.434, 0.295, 0.166, 0.169, 0.187, 0.206, 0.219, 0.225, 0.302, 0.432, 0.337, 0.311, 0.189, 0.237, 0.183, 0.174, 0.16, 0.314, 0.418, 0.245, 0.206, 0.195, 0.187, 0.177, 0.165, 0.153, 0.415, 0.381, 0.325, 0.212, 0.301, 0.272, 0.155, 0.143, 0.175, 0.465, 0.374, 0.128, 0.095, 0.08, 0.076, 0.08, 0.086, 0.338, 0.473, 0.4, 0.405, 0.416, 0.428, 0.449, 0.452, 0.475, 0.473, 0.412, 0.442, 0.446, 0.467, 0.448, 0.441, 0.427, 0.479, 0.505, 0.46, 0.485, 0.562, 0.536, 0.488, 0.527, 0.532, 0.568, 0.589, 0.521, 0.49, 0.507, 0.495, 0.456, 0.481, 0.477, 0.47, 0.426, 0.455, 0.45, 0.458, 0.427, 0.467, 0.464, 0.448, 0.492, 0.405, 0.47, 0.509, 0.497, 0.551, 0.568, 0.538, 0.53, 0.576, 0.606, 0.532, 0.503, 0.537, 0.542, 0.558, 0.51, 0.535, 0.547, 0.499, 0.512, 0.484, 0.548, 0.478, 0.466, 0.556, 0.731, 0.59, 0.542, 0.517, 0.499, 0.522, 0.514, 0.512, 0.544, 0.702, 0.45, 0.459, 0.51, 0.576, 0.507, 0.494, 0.514, 0.629, 0.711, 0.572, 0.549, 0.54, 0.588, 0.561, 0.619, 0.604, 0.6, 0.511, 0.501, 0.554, 0.551, 0.525, 0.567, 0.574, 0.575, 0.702, 0.557, 0.542, 0.607, 0.58, 0.538, 0.585, 0.547, 0.599, 0.644, 0.518, 0.506, 0.591, 0.58, 0.547, 0.605, 0.561, 0.696, 0.72, 0.626, 0.603, 0.623, 0.671, 0.61, 0.626, 0.636, 0.699, 0.549, 0.519, 0.573, 0.581, 0.533, 0.516, 0.552, 0.65, 0.984, 0.83, 0.753, 0.762, 0.751, 0.73, 0.714, 0.755, 0.78, 0.646, 0.575, 0.596, 0.634, 0.663, 0.595, 0.617, 0.599, 0.793, 0.779, 0.756, 0.718, 0.705, 0.744, 0.729, 0.736, 0.794, 0.801, 0.675, 0.659, 0.703, 0.671, 0.607, 0.647, 0.625, 0.697, 0.875, 0.819, 0.767, 0.811, 0.794, 0.797, 0.796, 0.793, 0.852, 0.705, 0.693, 0.688, 0.755, 0.701, 0.639, 0.692, 0.693, 0.848, 0.778, 0.798, 0.82, 0.806, 0.842, 0.837, 0.815, 0.842, 0.814, 0.689, 0.686, 0.73, 0.743, 0.697, 0.767, 0.827, 0.93, 0.99, 0.966, 0.92, 0.933, 0.958, 0.924, 0.95, 0.91, 0.903, 0.789, 0.78, 0.762, 0.787, 0.816, 0.794, 0.78, 0.755, 0.935, 0.947, 0.934, 0.894, 0.902, 0.912, 0.9, 0.964, 0.959, 0.853, 0.781, 0.761, 0.747, 0.79, 0.692, 0.739, 0.743, 0.88, 0.908, 0.927, 0.868, 0.794, 0.873, 0.869, 0.858, 0.884, 0.939, 0.822, 0.81, 0.82, 0.797, 0.729, 0.73, 0.755, 0.756, 0.905, 0.886, 0.892, 0.857, 0.891, 0.882, 0.951, 0.875, 0.95, 0.791, 0.75, 0.772, 0.757, 0.776, 0.729, 0.77, 0.79, 0.896, 0.908, 0.941, 0.9, 0.896, 0.897, 0.831, 0.517, 0.345, 0.436, 0.401, 0.35, 0.294, 0.252, 0.268, 0.356, 0.411, 0.374, 0.457, 0.437, 0.359, 0.392, 0.379, 0.358, 0.339, 0.344, 0.312, 0.393, 0.394, 0.339, 0.31, 0.29, 0.309, 0.269, 0.283, 0.251, 0.256, 0.409, 0.326, 0.271, 0.236, 0.201, 0.198, 0.232, 0.266, 0.272, 0.286, 0.433, 0.454, 0.375, 0.351, 0.329, 0.376, 0.329, 0.355, 0.332, 0.324, 0.306, 0.299, 0.31, 0.297, 0.256, 0.256, 0.257, 0.252, 0.272, 0.298, 0.3, 0.299, 0.281, 0.292, 0.273, 0.285, 0.254, 0.25, 0.236, 0.226, 0.199, 0.19, 0.217, 0.238, 0.243, 0.229, 0.195, 0.191, 0.178, 0.129, 0.087, 0.059, 0.039, 0.023, 0.011, 0.005, 0.002, 0.001, 0.0, 0.0], "dur": 387.3662708333333, "marks": [["I", "Prolog", 0.0], ["II", "Kornfeld", 33.55], ["III", "Andocken", 115.27], ["IV", "Zeit", 195.81], ["V", "D-Dur", 315.81], ["VI", "Epilog", 349.6]]};
+const MOV = DATA.marks.map(m => ({ n: m[0], t: m[1], s: m[2] }));
+const audio = document.getElementById("audio");
+const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+document.getElementById("dur").textContent = fmt(DATA.dur);
+const chWrap = document.getElementById("chapters");
+MOV.forEach((m, i) => {
+  const b = document.createElement("button");
+  b.className = "ch";
+  b.innerHTML = `<div class="n">${m.n}</div><div class="t">${m.t}</div><div class="s">${fmt(m.s)}</div>`;
+  b.onclick = () => { audio.currentTime = m.s + 0.01; start(); };
+  chWrap.appendChild(b);
+  m.el = b;
+});
+const movAt = t => { let k = 0; MOV.forEach((m, i) => { if (t >= m.s - 0.05) k = i; }); return k; };
+
+// waveform
+const wc = document.getElementById("wc"), wx = wc.getContext("2d");
+function drawWave() {
+  const dpr = devicePixelRatio || 1, W = wc.clientWidth, H = wc.clientHeight;
+  wc.width = W * dpr; wc.height = H * dpr; wx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  wx.clearRect(0, 0, W, H);
+  const p = DATA.peaks, n = p.length, bw = W / n, prog = audio.currentTime / DATA.dur;
+  const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+  const wave = getComputedStyle(document.documentElement).getPropertyValue("--wave").trim();
+  for (let i = 0; i < n; i++) {
+    const h = Math.max(1, p[i] * H * 0.95);
+    wx.fillStyle = i / n <= prog ? accent : wave;
+    wx.fillRect(i * bw, (H - h) / 2, Math.max(1, bw - 0.4), h);
+  }
+  wx.fillStyle = "rgba(233,228,216,.35)";
+  MOV.forEach(m => wx.fillRect(m.s / DATA.dur * W, 0, 1, H));
+}
+document.getElementById("wave").onclick = e => {
+  const r = wc.getBoundingClientRect();
+  audio.currentTime = (e.clientX - r.left) / r.width * DATA.dur; start();
+};
+addEventListener("resize", drawWave);
+
+// audio graph (analyser drives the sky)
+let actx, an, buf;
+function ensureGraph() {
+  if (actx) return;
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  const src = actx.createMediaElementSource(audio);
+  an = actx.createAnalyser(); an.fftSize = 1024; an.smoothingTimeConstant = 0.85;
+  src.connect(an); an.connect(actx.destination);
+  buf = new Uint8Array(an.frequencyBinCount);
+}
+const icon = document.getElementById("icon");
+function start() { ensureGraph(); actx.resume(); audio.play(); }
+document.getElementById("play").onclick = () => audio.paused ? start() : audio.pause();
+audio.onplay = () => icon.innerHTML = '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
+audio.onpause = () => icon.innerHTML = '<path d="M7 4l14 8-14 8z"/>';
+
+// sky: stars + an accretion ring that breathes with the music
+const sky = document.getElementById("sky"), sx = sky.getContext("2d");
+const stars = Array.from({ length: 260 }, () => ({ x: Math.random(), y: Math.random(), z: Math.random() }));
+let low = 0, high = 0;
+function frame(ts) {
+  const dpr = devicePixelRatio || 1, W = innerWidth, H = innerHeight;
+  if (sky.width !== W * dpr) { sky.width = W * dpr; sky.height = H * dpr; }
+  sx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (an && !audio.paused) {
+    an.getByteFrequencyData(buf);
+    let l = 0, h = 0;
+    for (let i = 1; i < 12; i++) l += buf[i];
+    for (let i = 60; i < 260; i++) h += buf[i];
+    low += (l / 11 / 255 - low) * 0.15; high += (h / 200 / 255 - high) * 0.15;
+  } else { low *= 0.97; high *= 0.97; }
+  sx.fillStyle = "#05060a"; sx.fillRect(0, 0, W, H);
+  const cx = W * (W < 700 ? 0.82 : 0.9), cy = H * (W < 700 ? 0.07 : 0.1), R = Math.min(W, H) * ((W < 700 ? 0.07 : 0.09) + low * 0.03);
+  const t = ts / 1000;
+  stars.forEach(s => {
+    const a = 0.25 + 0.6 * s.z * (0.6 + 0.4 * Math.sin(t * (0.5 + s.z) + s.x * 40)) + high * 0.5 * s.z;
+    sx.fillStyle = `rgba(233,228,216,${Math.min(1, a)})`;
+    sx.fillRect(s.x * W, s.y * H, s.z * 1.6 + 0.3, s.z * 1.6 + 0.3);
+  });
+  // accretion disc (flattened ellipse) + photon ring
+  const g = sx.createRadialGradient(cx, cy, R * 0.9, cx, cy, R * 2.4);
+  g.addColorStop(0, `rgba(232,178,92,${0.22 + low * 0.5})`);
+  g.addColorStop(0.35, `rgba(200,120,50,${0.08 + low * 0.2})`);
+  g.addColorStop(1, "rgba(0,0,0,0)");
+  sx.save(); sx.translate(cx, cy); sx.scale(1, 0.22); sx.rotate(Math.sin(t * 0.05) * 0.02);
+  sx.fillStyle = g; sx.beginPath(); sx.arc(0, 0, R * 2.4, 0, Math.PI * 2); sx.fill(); sx.restore();
+  sx.strokeStyle = `rgba(255,214,150,${0.35 + low * 0.6})`; sx.lineWidth = 1.5 + low * 3;
+  sx.beginPath(); sx.arc(cx, cy, R * 1.04, 0, Math.PI * 2); sx.stroke();
+  sx.fillStyle = "#000"; sx.beginPath(); sx.arc(cx, cy, R, 0, Math.PI * 2); sx.fill();
+  // UI state
+  const k = movAt(audio.currentTime);
+  MOV.forEach((m, i) => m.el.classList.toggle("on", i === k));
+  document.getElementById("mv").textContent = `${MOV[k].n} · ${MOV[k].t}`;
+  document.getElementById("cur").textContent = fmt(audio.currentTime);
+  drawWave();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
