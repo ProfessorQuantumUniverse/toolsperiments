@@ -1,30 +1,37 @@
-# 🕳️ EREIGNISHORIZONT – Ein Epos in fünf Sätzen
+# 🕳️ EREIGNISHORIZONT (V2 – Resurrected)
 
-Ein epischer Soundtrack, der vom *Kornfeld* über das *Andockmanöver* bis zur *Zeit* reist, im Geist von Hans Zimmer (*Interstellar*, *Inception*) und Scott Buckley.
-**Alle Themen sind Originalkompositionen.** Es wird nichts zitiert, der Stil ist eine Hommage.
+Ein epischer Soundtrack im Geist von Hans Zimmers *No Time For Caution*, *Time* und *Cornfield Chase*: ein warmes Kirchenorgel-Ostinato, ein Uhrwerk, das nie stillsteht, ein Sub-Bass-Pedal für echten Druck und ein Leitmotiv, das vom Flügel bis zum vollen Blech wächst.
+**Alle Themen sind Originalkompositionen.**
 
-▶️ **Anhören:** [`ereignishorizont.mp3`](./ereignishorizont.mp3) (6:45, 320 kbps) oder im Player [`index.html`](./index.html) mit Kapiteln und Visualisierung.
+▶️ **Anhören:** [`ereignishorizont.mp3`](./ereignishorizont.mp3) (4:21, 320 kbps) oder im Player [`index.html`](./index.html)
 
 ## Aufbau
 
-| Zeit | Satz | Was passiert |
+| Zeit | Teil | Was passiert |
 |---|---|---|
-| 0:00 | **I · Staub** | Eine Uhr tickt im Nichts. Das 16'-Orgelpedal legt das Fundament, ein gedämpftes Klavier stellt das Hauptthema vor, dann singen die Celli. |
-| 0:51 | **II · Kornfeld** | Die Verfolgungsjagd. Orgel-Ostinato in Sechzehntel-**Dreiergruppen** gegen **Zweiergruppen** der linken Hand, dazu wandernde Akzente. Spiccato-Streicher, Taikos im 3+3+2-Rhythmus, die Hörner tragen das Thema augmentiert. |
-| 2:08 | **III · Andocken** | Unerbittliches Achtel-Ostinato über einem chromatisch steigenden Bass (D, B♭, C, D, E♭, E, F, G, A). Die Uhr geht in Sechzehntel über, ein Shepard-Ton steigt endlos, dazu Braams und Chor. Höhepunkt in d-Moll mit Trompetenfanfare, dann folgt bei 3:25 der **harte Schnitt**. |
-| 3:29 | **IV · Zeit** | Ein einziger 8-Takt-Zyklus, fünfmal, jedes Mal mit neuen Schichten: Klavier und Herzschlag, Streicher, dann Hörner mit Thema und Geigen mit dem Zeit-Motiv im Kontrapunkt, das Tutti in Moll. Bei **5:32 wendet sich alles nach D-Dur**. |
-| 6:03 | **V · Tesserakt** | Coda. Das Klavier erinnert sich an das Thema in Dur, die Uhr kehrt zurück, läuft aus und bleibt stehen. |
+| 0:00 | **Uhrwerk** | Die Uhr tickt allein. Ein warmes Flöten-Orgel-Ostinato in Achteln setzt ein, darunter ein Sub-Pedal auf D1 (36,7 Hz). Harmonie i–VI–III–VII: d-Moll, B-Dur, F-Dur, C-Dur. |
+| 0:35 | **Leitmotiv** | Die Orgel fließt in Sechzehnteln, die Uhr in Achteln. Der Flügel stellt das Leitmotiv vor, dann die Celli. Die Streicher atmen in Zwei-Takt-Schwellern. |
+| 1:21 | **Aufbau** | Chor, Geigen-Gegenstimme, Taiko-Herzschlag. Ab 1:44 Hörner und Posaunen im Unisono. |
+| 2:06 | **Höhepunkt** | Trompeten, Hörner und Posaunen in Oktaven, Streicher-Tremolo, volle Orgel. Dann der Breakdown: nur Orgel und Uhr. |
+| 2:40 | **Finale** | Zweimal das Motiv mit dem ganzen Orchester. Das Tempo steigt über das ganze Stück stetig von 82 auf 88 BPM. |
+| 3:46 | **Flügel** | Der Flügel spielt das Leitmotiv intim und warm verhallt, das Tempo gibt nach, die Uhr läuft aus. |
 
-## Wie es gemacht ist
+## Was sich gegenüber V1 geändert hat
 
-Jede Note ist Python-Code (`source/composition.py`). Die Produktion läuft komplett im Rechner:
+| Problem in V1 | Lösung in V2 |
+|---|---|
+| trocken, dünn, „General-MIDI" | Orchester aus der **Aegean Symphonic Orchestra**-Soundfont (Virtual Playing Orchestra) statt SSO/MuseScore GM. Die alten SSO-Celli brauchten 216 ms bis zur halben Lautstärke, die Aegean-Sektionen etwa 50 ms. Dazu der Salamander-Flügel. |
+| zu wenig Raum | **Hybrid-Faltungshall**: echte frühe Reflexionen eines aufgenommenen Konzertsaals (EchoThief) plus 4,3-s-Kathedralen-Hallfahne, **32 % wet** |
+| mechanisch | **Humanisierung**: Timing-Jitter ±5–15 ms, Velocity folgt der Phrase, CC11-„Atmen" der Streicher, stetige Temposteigerung 82 → 88 BPM |
+| „blechernes Gezirpe" | **warme Orgel**: Registrierungen ohne Mixturen, Höhen ab 2,6–3,8 kHz abgerundet, halbiertes Anblasgeräusch, gedoppelt mit einer gesampelten Pfeifenorgel |
+| kein Druck | **Sub-Bass**: Sinus plus Reese-Layer auf D1/F1/C1/B♭1 (33–58 Hz) unter dem Orgelpedal |
+| flache Dynamik | Orgel-Schichten, Pedal und Sub sind vom Pianissimo bis zum Finale automatisiert. Gemessener Verlauf: −25 → −18 → −14 → −10 → Breakdown −13 → Finale −10 → Flügel −19 dB RMS. |
 
-- **Additive Pfeifenorgel** (`engine.py`): Register von Contra 32' über Bourdon 16', Prinzipal 8', Oktave 4' und Quinte 2⅔' bis zur Mixtur mit Repetition und Trompete 8'. Dazu kommen Pfeifen-Chiff, langsame Winddrift, leicht verstimmte Register und die Aufstellung der Pfeifen auf C- und Cis-Seite im Stereobild.
-- **Synthese**: Uhr (auf E und D gestimmt, passend zur Tonart), Impacts, Braams mit sich öffnendem Filter, Riser mit Shepard-Risset-Glissando, Whooshes, Sub-Bass, Supersaw-Pads, Herzschlag und Weltraum-Atmosphäre.
-- **Orchester**: *Sonatina Symphonic Orchestra* (CC Sampling+) und die *MuseScore-General*-Soundfont (MIT), über FluidSynth gerendert. Das ergibt 48 Einzelspuren mit Expression-Automation (CC11), Humanisierung und Voice-Leading-Algorithmus für die Akkorde.
-- **Mix**: automatisches Gain-Staging pro Stem, orchestrale Sitzordnung im Stereobild, zwei berechnete Hallräume (Kathedrale RT60 6,5 s, Saal 2,6 s, frequenzabhängig) und eine Makro-Dynamikkurve über das ganze Stück.
-- **Mastering**: Kompressor, sanfte Sättigung und Limiter auf −16 LUFS integriert, True-Peak unter −1 dBTP.
-- **Qualitätskontrolle ohne Ohren**: Lautheitsverlauf, Spektrogramm und Bandenergie pro Satz (`analyse.png`), eine Chroma-Analyse, die jeden Takt gegen die geplante Harmonie prüft, und ein Klick-Detektor.
+## Mastering-Kette
+
+Hochpass 30 Hz (4. Ordnung) → +2,5 dB bei 55 Hz → −1,2 dB bei 300 Hz → High-Shelf −2 dB ab 10 kHz, Tiefpass 18 kHz → Glue-Kompressor (1,8:1) → **True-Peak-Limiter** (4× Oversampling, Look-ahead). Der Pegel ist so gewählt, dass der Limiter nie mehr als **3 dB** arbeitet.
+
+**Messwerte:** −13,1 LUFS integriert, True Peak −1,13 dBTP, **0 geclippte Samples** (auch in der dekodierten MP3), keine Transienten außer den gewollten Uhr-Ticks.
 
 ![Analyse](./analyse.png)
 
@@ -32,7 +39,7 @@ Jede Note ist Python-Code (`source/composition.py`). Die Produktion läuft kompl
 
 ```bash
 cd source
-./render.sh          # lädt die Soundfonts (~630 MB), rendert ~5 min, schreibt build/out/
+./render.sh      # lädt Soundfonts (~1 GB) und Impulsantworten, rendert, mischt, mastert -> build/out/
 ```
 
-Benötigt Python 3.10+, `fluidsynth` und `ffmpeg`.
+*Samples: Virtual Playing Orchestra / Aegean Symphonic Orchestra (Musik damit zu erstellen ist ausdrücklich frei), Sonatina Symphonic Orchestra (CC Sampling+), MuseScore General (MIT). Impulsantworten: [EchoThief](https://www.echothief.com/) (Nutzung für Hall in künstlerischen Werken erlaubt). Die Bibliotheken selbst werden nicht weitergegeben.*

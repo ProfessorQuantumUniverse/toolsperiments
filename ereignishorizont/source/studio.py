@@ -20,8 +20,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SF_DIR = os.environ.get("SF_DIR", os.path.join(HERE, "soundfonts"))
 SSO = os.path.join(SF_DIR, "Sonatina_Symphonic_Orchestra.sf2")
 MSG = os.path.join(SF_DIR, "MuseScore_General.sf2")
-BUILD = os.environ.get("BUILD_DIR", os.path.join(HERE, "build"))
-CACHE = os.path.join(BUILD, "cache")
+AEG = os.path.join(SF_DIR, "aegean", "AegeanSymphonicOrchestra-v2_5-universal.sf2")
+CACHE = os.path.join(os.environ.get("BUILD_DIR", os.path.join(HERE, "build")), "cache")
 os.makedirs(CACHE, exist_ok=True)
 
 NOTE_IDX = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
@@ -107,28 +107,29 @@ def render_sf2(track, total_len):
     mf = mido.MidiFile(ticks_per_beat=tpb)
     tr = mido.MidiTrack()
     mf.tracks.append(tr)
+    ch = 9 if bank == 128 else 0
     tr.append(mido.MetaMessage("set_tempo", tempo=500000, time=0))
-    tr.append(mido.Message("control_change", control=0, value=bank, time=0))
-    tr.append(mido.Message("control_change", control=32, value=0, time=0))
-    tr.append(mido.Message("program_change", program=prog, time=0))
-    tr.append(mido.Message("control_change", control=7, value=127, time=0))
-    tr.append(mido.Message("control_change", control=10, value=64, time=0))
+    tr.append(mido.Message("control_change", channel=ch, control=0, value=bank if bank < 128 else 0, time=0))
+    tr.append(mido.Message("control_change", channel=ch, control=32, value=0, time=0))
+    tr.append(mido.Message("program_change", channel=ch, program=prog, time=0))
+    tr.append(mido.Message("control_change", channel=ch, control=7, value=127, time=0))
+    tr.append(mido.Message("control_change", channel=ch, control=10, value=64, time=0))
     if not any(c == 11 for _, c, _ in track.cc):
-        tr.append(mido.Message("control_change", control=11, value=127, time=0))
-    tr.append(mido.Message("control_change", control=91, value=0, time=0))
-    tr.append(mido.Message("control_change", control=93, value=0, time=0))
+        tr.append(mido.Message("control_change", channel=ch, control=11, value=127, time=0))
+    tr.append(mido.Message("control_change", channel=ch, control=91, value=0, time=0))
+    tr.append(mido.Message("control_change", channel=ch, control=93, value=0, time=0))
     last = 0
     for tick, _, e in ev:
         dt = max(0, tick - last)
         last = tick
         if e[0] == "on":
-            tr.append(mido.Message("note_on", note=e[1], velocity=e[2], time=dt))
+            tr.append(mido.Message("note_on", channel=ch, note=e[1], velocity=e[2], time=dt))
         elif e[0] == "off":
-            tr.append(mido.Message("note_off", note=e[1], velocity=0, time=dt))
+            tr.append(mido.Message("note_off", channel=ch, note=e[1], velocity=0, time=dt))
         else:
-            tr.append(mido.Message("control_change", control=e[1], value=e[2], time=dt))
+            tr.append(mido.Message("control_change", channel=ch, control=e[1], value=e[2], time=dt))
     endtick = int(total_len * tps)
-    tr.append(mido.Message("control_change", control=64, value=0, time=max(0, endtick - last)))
+    tr.append(mido.Message("control_change", channel=ch, control=64, value=0, time=max(0, endtick - last)))
     mid = os.path.join(CACHE, track.name + ".mid")
     mf.save(mid)
     h = hashlib.md5(open(mid, "rb").read() + sfpath.encode()).hexdigest()[:12]
@@ -297,6 +298,15 @@ REGISTRATIONS = {
                    "Bombarde16"],
 }
 
+REGISTRATIONS.update({
+    "warm_soft": ["Flute8", "Gedackt8", "Flute4"],
+    "warm_main": ["Bourdon16", "Principal8", "Flute8", "Octave4", "Flute4"],
+    "warm_full": ["Bourdon16", "Principal16", "Principal8", "Flute8", "Octave4", "Flute4", "Twelfth",
+                  "Fifteenth", "Trumpet8"],
+    "warm_pedal": ["Contra32", "Bourdon16", "Principal16", "Principal8"],
+})
+ROLLOFF = {"warm_soft": 2600, "warm_main": 3200, "warm_full": 3800, "warm_pedal": 2000}
+
 _organ_cache = {}
 
 
@@ -329,7 +339,7 @@ def _organ_tone(pitch, reg, length):
                 break
             a = hfn(k)
             if a > 1e-3:
-                roll = 1.0 / (1 + (fh / 5500) ** 2)
+                roll = 1.0 / (1 + (fh / ROLLOFF.get(reg, 5500)) ** 2)
                 ph = rng.uniform(0, 2 * np.pi)
                 out += lvl * a * roll * np.sin(2 * np.pi * fh * t * (1 + drift) + ph)
             k += 1
@@ -355,7 +365,7 @@ def render_organ(track, total_len):
         # chiff: a short breathy transient around the 2nd-4th harmonic
         nch = int(0.05 * SR)
         ch = RNG.standard_normal(nch).astype(np.float32)
-        ch = bp(ch, min(f0 * 2, 9000), min(f0 * 5, 15000), 1)
+        ch = bp(ch, min(f0 * 2, 3000), min(f0 * 4, 6000), 1)
         ch *= np.exp(-np.arange(nch) / (0.012 * SR))
         x[:nch] += ch * 0.05 * track.kw.get("chiff", 1.0)
         vel = v / 100.0
@@ -571,12 +581,118 @@ def render_atmos(track, total_len):
     return buf
 
 
+def render_sea(track, total_len):
+    """Ocean: overlapping waves (rise, crash, hiss), slowly wandering in the stereo field."""
+    buf = np.zeros((int(total_len * SR), 2), np.float32)
+    rng = np.random.default_rng(99)
+    for t, d, p, v, ex in track.notes:
+        tt = t
+        rough = ex.get("rough", 0.0)
+        while tt < t + d:
+            L = rng.uniform(4.5, 8.0) * (1 - 0.4 * rough)
+            nsamp = int(L * SR)
+            x = pink(nsamp, 2)
+            tl = np.arange(nsamp) / SR
+            crest = rng.uniform(0.45, 0.65) * L
+            env = np.where(tl < crest, (tl / crest) ** 2.2, np.exp(-(tl - crest) / (0.28 * L)))
+            fc = lambda s, c=crest: 350 + 2600 * (1 + rough) * np.exp(-((s - c) / 0.9) ** 2) + 400 * (s / L)
+            x = varfilter(x, fc, "low", block=1024)
+            x = hp(x, 90)
+            pan = rng.uniform(-0.6, 0.6)
+            x[:, 0] *= np.sqrt(0.5 * (1 - pan))
+            x[:, 1] *= np.sqrt(0.5 * (1 + pan))
+            x *= (env * rng.uniform(0.6, 1.0))[:, None] * 0.35
+            fade = np.minimum(1, np.minimum(tl / 0.3, (L - tl) / 0.3))
+            place(buf, (x * fade[:, None]).astype(np.float32), tt, v / 127.0)
+            tt += L * rng.uniform(0.45, 0.7)
+    return buf
+
+
+def render_wind(track, total_len):
+    buf = np.zeros((int(total_len * SR), 2), np.float32)
+    rng = np.random.default_rng(5)
+    for t, d, p, v, ex in track.notes:
+        nsamp = int(d * SR)
+        x = pink(nsamp, 2)
+        ph = rng.uniform(0, 6, 3)
+        f = lambda s: 700 + 450 * np.sin(2 * np.pi * s / 7.3 + ph[0]) + 300 * np.sin(2 * np.pi * s / 2.9 + ph[1])
+        body = varfilter(x, f, "low", block=1024)
+        howl = varfilter(varfilter(x, lambda s: f(s) * 1.6 + 200, "low", block=1024),
+                         lambda s: f(s) * 1.2, "high", block=1024) * 2.0
+        tl = np.arange(nsamp) / SR
+        gust = 0.55 + 0.45 * np.sin(2 * np.pi * tl / 5.1 + ph[2]) * np.sin(2 * np.pi * tl / 13.0)
+        y = (body * 0.5 + howl) * gust[:, None]
+        e = env_adsr(nsamp, ex.get("att", 3.0), ex.get("rel", 3.0), sus_len=d - ex.get("rel", 3.0))
+        place(buf, (y * e[:, None] * 0.4).astype(np.float32), t, v / 127.0)
+    return buf
+
+
+def thunder_sound(size=1.0, seed=0):
+    rng = np.random.default_rng(seed)
+    L = 6.0 * size
+    nsamp = int(L * SR)
+    tl = np.arange(nsamp) / SR
+    x = RNG.standard_normal((nsamp, 2))
+    env = np.zeros(nsamp)
+    for k in range(rng.integers(3, 7)):
+        c = rng.uniform(0.0, 0.5 * L) * (k > 0)
+        env += rng.uniform(0.4, 1.0) * np.exp(-np.maximum(tl - c, 0) / rng.uniform(0.4, 1.5)) * np.clip((tl - c) / 0.03, 0, 1)
+    crack = hp(RNG.standard_normal((nsamp, 2)), 1500) * np.exp(-tl / 0.08)[:, None] * 0.5
+    rumble = lp(x, 180, 2) * 3 + lp(x, 900, 2) * 0.4
+    y = rumble * env[:, None] + crack
+    y[: 96] *= np.linspace(0, 1, 96)[:, None]
+    y *= np.minimum(1, (L - tl) / 1.0)[:, None]
+    return y.astype(np.float32) * 0.5
+
+
+def render_thunder(track, total_len):
+    buf = np.zeros((int(total_len * SR), 2), np.float32)
+    for i, (t, d, p, v, ex) in enumerate(track.notes):
+        place(buf, thunder_sound(ex.get("size", 1.0), seed=i + 3), t, v / 127.0)
+    return buf
+
+
+def gong_sound(size=1.0, f0=58.0, seed=1):
+    """Tam-tam: dense inharmonic partials that bloom after the strike."""
+    rng = np.random.default_rng(seed)
+    L = 9.0 * size
+    nsamp = int(L * SR)
+    tl = np.arange(nsamp) / SR
+    y = np.zeros((nsamp, 2))
+    for k in range(90):
+        f = f0 * (1 + k) ** 1.18 * rng.uniform(0.97, 1.03)
+        if f > 9000:
+            break
+        bloom = 0.05 + 0.9 * (f / 3000) ** 0.7
+        dec = 7.0 * size * (200 / (f + 200)) ** 0.35
+        a = (1 - np.exp(-tl / bloom)) * np.exp(-tl / dec) / (1 + k) ** 0.45
+        ph = rng.uniform(0, 6.28, 2)
+        am = 1 + 0.15 * np.sin(2 * np.pi * rng.uniform(0.3, 2.0) * tl)
+        y[:, 0] += a * am * np.sin(2 * np.pi * f * tl + ph[0])
+        y[:, 1] += a * am * np.sin(2 * np.pi * f * 1.001 * tl + ph[1])
+    hit = lp(RNG.standard_normal((nsamp, 2)), 1200) * np.exp(-tl / 0.05)[:, None] * 0.6
+    y = y / np.abs(y).max() * 0.6 + hit
+    y[:48] *= np.linspace(0, 1, 48)[:, None]
+    return y.astype(np.float32)
+
+
+def render_gong(track, total_len):
+    buf = np.zeros((int(total_len * SR), 2), np.float32)
+    for i, (t, d, p, v, ex) in enumerate(track.notes):
+        place(buf, gong_sound(ex.get("size", 1.0), hz(p), seed=i + 1), t, v / 127.0)
+    return buf
+
+
+SYNTHS_EXTRA = {"sea": render_sea, "wind": render_wind, "thunder": render_thunder, "gong": render_gong}
+
+
 SYNTHS = {
     "organ": render_organ, "tick": render_tick, "impact": render_impact,
     "riser": render_riser, "whoosh": render_whoosh, "pad": render_pad,
     "sub": render_sub, "braam": render_braam, "heart": render_heart,
     "atmos": render_atmos,
 }
+SYNTHS.update(SYNTHS_EXTRA)
 
 
 def render_track(track, total_len):
@@ -664,3 +780,141 @@ def channel(x, gain_db=0.0, pan=0.0, width=1.0, hp_f=None, lp_f=None, eq=(), aut
     if auto:
         y = y * gain_curve(auto, len(y))[:, None]
     return y.astype(np.float32)
+
+
+# ==========================================================================
+# V2 additions
+# ==========================================================================
+from scipy.ndimage import minimum_filter1d
+import numba
+
+
+# ---------- one-shot articulations (clean staccato / spiccato / stabs) -------
+def render_oneshot(track, total_len):
+    """Render every distinct (pitch, velocity-bucket) once from the SF2 as a long
+    note, then shape it into a short articulation with a natural exponential decay
+    (no hard cut-offs -> no clicks) and an optional transient boost."""
+    sfp, bank, prog = track.kw["sf"], track.kw.get("bank", 0), track.kw["prog"]
+    hold, tau = track.kw.get("hold", 0.08), track.kw.get("decay", 0.08)
+    punch = track.kw.get("punch", 1.6)
+    keys = sorted({(p, min(127, (v // 8) * 8 + 4)) for t, d, p, v, ex in track.notes})
+    probe = Track(track.name + "_os", "sf2", sf=sfp, bank=bank, prog=prog)
+    step = 2.0
+    for i, (p, v) in enumerate(keys):
+        probe.add(i * step + 0.05, 1.2, p, v)
+    raw = render_sf2(probe, len(keys) * step + 1.0)
+    L = int((hold + tau * 6) * SR)
+    tl = np.arange(L) / SR
+    env = np.where(tl < hold, 1.0, np.exp(-(tl - hold) / tau))
+    env *= 1 + (punch - 1) * np.exp(-tl / 0.025)
+    env[-64:] *= np.linspace(1, 0, 64)
+    shots = {}
+    for i, (p, v) in enumerate(keys):
+        i0 = int((i * step + 0.05) * SR)
+        seg = raw[i0:i0 + L] * env[:, None]
+        shots[(p, v)] = seg.astype(np.float32)
+    buf = np.zeros((int(total_len * SR), 2), np.float32)
+    for t, d, p, v, ex in track.notes:
+        vb = min(127, (v // 8) * 8 + 4)
+        g = (v / vb) ** 1.5
+        seg = shots[(p, vb)]
+        if d < hold + tau * 6 - 0.02 and ex.get("choke", True) is False:
+            pass
+        place(buf, seg, t, g)
+    return buf
+
+
+# ---------- sub bass: sine + gentle Reese layer ------------------------------
+def render_subv2(track, total_len):
+    buf = np.zeros((int(total_len * SR), 2), np.float32)
+    for t, d, p, v, ex in track.notes:
+        att, rel = ex.get("att", 0.4), ex.get("rel", 1.2)
+        nsamp = int((d + rel) * SR)
+        tl = np.arange(nsamp) / SR
+        f = hz(p)
+        sine = np.sin(2 * np.pi * f * tl)
+        reese = np.zeros(nsamp)
+        for det in (-0.35, 0.35):          # slow beating detuned saws, low-passed
+            ff = f * 2 ** (det / 12 / 10)
+            reese += _saw_additive(ff, nsamp, RNG.uniform(0, 6.28), maxf=400)
+        reese = lp(reese, 110, 2) * 0.35
+        x = sine * 0.9 + reese
+        e = env_adsr(nsamp, att, rel, sus_len=d)
+        place(buf, (x * e * 0.45).astype(np.float32), t, v / 127.0)
+    return buf
+
+
+SYNTHS["oneshot"] = render_oneshot
+SYNTHS["subv2"] = render_subv2
+
+
+def render_track(track, total_len):
+    if track.kind == "sf2":
+        return render_sf2(track, total_len)
+    return SYNTHS[track.kind](track, total_len)
+
+
+# ---------- hybrid reverb: real concert-hall early field + long diffuse tail --
+IR_DIR = os.environ.get("IR_DIR", os.path.join(HERE, "ir", "EchoThiefImpulseResponseLibrary"))
+
+
+def hybrid_ir(tail_rt=3.8, tail_rt_high=1.8, real="Venues/ConradPrebysConcertHallSeatF111.wav",
+              tail_start=0.06, tail_level=0.55, length=7.0, seed=21):
+    from scipy.signal import resample_poly
+    x, sr = sf.read(os.path.join(IR_DIR, real), always_2d=True)
+    if sr != SR:
+        x = resample_poly(x, SR // 1000 * 10, sr // 100, axis=0) if sr == 44100 else resample_poly(x, SR, sr, axis=0)
+    i0 = max(0, int(np.argmax(np.abs(x).sum(1))) - int(0.002 * SR))
+    x = x[i0:]
+    x = x / np.sqrt(np.sum(x ** 2) / 2)
+    tail = make_ir(rt_low=tail_rt, rt_high=tail_rt_high, length=length, predelay=0.0, er=False, seed=seed)
+    n = int(length * SR)
+    out = np.zeros((n, 2))
+    out[:min(n, len(x))] += x[:n]
+    ts = int(tail_start * SR)
+    fade = np.clip((np.arange(n) - ts) / (0.08 * SR), 0, 1)[:, None]
+    out += tail[:n] * fade * tail_level * 3.0
+    # pre-delay 18 ms, final energy normalisation
+    out = np.concatenate([np.zeros((int(0.018 * SR), 2)), out])[:n]
+    out /= np.sqrt(np.sum(out ** 2) / 2)
+    return out.astype(np.float32)
+
+
+# ---------- look-ahead true-peak limiter -------------------------------------
+@numba.njit(cache=True)
+def _release(g, coef):
+    out = np.empty_like(g)
+    cur = 1.0
+    for i in range(len(g)):
+        if g[i] < cur:
+            cur = g[i]
+        else:
+            cur = cur + (g[i] - cur) * coef
+        out[i] = cur
+    return out
+
+
+def true_peak(x):
+    from scipy.signal import resample_poly
+    return float(np.abs(resample_poly(x, 4, 1, axis=0)).max())
+
+
+def limiter(x, ceiling_db=-1.0, lookahead=0.004, release=0.15):
+    """Brick-wall limiter on 4x-oversampled peaks. Returns (y, gain_reduction_dB_array)."""
+    from scipy.signal import resample_poly
+    c = 10 ** (ceiling_db / 20) * 0.985
+    up = np.abs(resample_poly(x, 4, 1, axis=0)).max(1)
+    pk = up[: len(x) * 4].reshape(len(x), 4).max(1)
+    req = np.minimum(1.0, c / np.maximum(pk, 1e-9))
+    L = int(lookahead * SR)
+    req = minimum_filter1d(req, size=2 * L + 1)
+    k = np.hanning(2 * L + 1)
+    k /= k.sum()
+    sm = np.convolve(np.pad(req, (L, L), mode="edge"), k, mode="valid")
+    g = np.minimum(sm, req)
+    g = _release(g.astype(np.float64), 1 - np.exp(-1 / (release * SR)))
+    y = x * g[:, None]
+    tp = true_peak(y)
+    if tp > 10 ** (ceiling_db / 20):
+        y *= 10 ** (ceiling_db / 20) / tp
+    return y.astype(np.float32), 20 * np.log10(g)
