@@ -18,7 +18,7 @@ Eine gesammelte Spielwiese kleiner Web-Tools, Demos und Experimente — Dinge, d
 | 🔎 Internet Deep Dive | [`internetDeepDive/`](./internetDeepDive/) | Google-Dorking Recon-Assistent (OSINT) |
 | 🧩 Fastlane Checker | [`fastlane-checker/`](./fastlane-checker/) | Prüft die F-Droid-Fastlane-Ordnerstruktur in deinem REPO |
 | 🔌 SHELLY-Relay Configurator | [`SHELLY-configurator/`](./SHELLY-configurator/) | Let's you find the perfect shelly for your smart home project |
-| 📸 Rowday Foto-Tour | [`rowday-map/`](./rowday-map/) | Karte als To-do-Liste für die Rowday-Stände in Frankfurt — optimierte Route mit U-Bahn-Hinweisen |
+| 📸 WOW-Day Foto-Tour | [`wow-day/`](./wow-day/) | Karte als To-do-Liste für die WOW-Day-Stände in Frankfurt — optimierte Route mit U-Bahn-Hinweisen |
 
 ## Aufbau
 

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Rowday Foto-Tour</title>
-<meta name="description" content="Interaktive Karte als To-Do-Liste für die Rowday-Stände in Frankfurt — mit optimierter Route und U-Bahn-Hinweisen.">
+<title>WOW-Day Foto-Tour</title>
+<meta name="description" content="Interaktive Karte als To-Do-Liste für die WOW-Day-Stände in Frankfurt — mit optimierter Route und U-Bahn-Hinweisen.">
 <meta name="theme-color" content="#0b1020">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -90,7 +90,8 @@
   .stop.done .info h3 span{text-decoration:line-through;text-decoration-color:var(--ok);text-decoration-thickness:2px;opacity:.75}
   .meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
   .chip{font-size:11px;font-weight:600;padding:3px 7px;border-radius:7px;background:var(--chip);color:var(--muted);white-space:nowrap}
-  .chip.u{color:#fff}
+  .chip.cls{color:#fff}
+  .where{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}
   .done-by{font-size:12px;color:var(--ok);font-weight:600;margin-top:6px}
   .note{width:100%;margin-top:8px;border:1px solid var(--line);background:transparent;border-radius:10px;padding:7px 9px;font-size:12.5px;outline:none;display:none}
   .stop.focus .note{display:block}
@@ -202,7 +203,7 @@
         <div class="num" id="ringNum">0/7</div>
       </div>
       <div class="title">
-        <small>Rowday · Frankfurt</small>
+        <small>WOW-Day · Frankfurt</small>
         <h1>Foto-Tour</h1>
         <p id="subline">Alle Stände abklappern &amp; Fotos machen</p>
       </div>
@@ -256,28 +257,22 @@
 /* =====================================================================
    Daten — Koordinaten aus OpenStreetMap (Nominatim / Overpass, © OSM-Mitwirkende)
    ===================================================================== */
+// Standorte laut Info-Mail zum WOW-Day; Punkte auf OSM-Objekte gesetzt (U-Eingänge, Ecken, Uhrtürmchen)
 const STOPS = [
-  { id:'leipziger', name:'Leipziger Straße', area:'Bockenheim', color:'#ff5a5f', kind:'street',
-    hint:'Ganze Straße von Kirchplatz bis Bockenheimer Warte absuchen',
-    line:[[50.123861,8.640592],[50.123821,8.641345],[50.123637,8.642572],[50.1233,8.643498],[50.123003,8.644425],[50.122738,8.645254],[50.12254,8.645868],[50.122271,8.646686],[50.12189,8.647358],[50.121526,8.647967],[50.121077,8.648712],[50.12088,8.649037],[50.120494,8.649671],[50.120272,8.649981]] },
-  { id:'grueneburgweg', name:'Grüneburgweg', area:'Westend-Nord', color:'#ff8a3d', kind:'street',
-    hint:'Lange Straße: von der Siesmayerstraße bis zur Eschersheimer Landstraße',
-    line:[[50.123146,8.658403],[50.123131,8.659961],[50.123107,8.661393],[50.123102,8.661779],[50.123314,8.663205],[50.123499,8.664514],[50.123446,8.66491],[50.123147,8.665561],[50.12295,8.665996],[50.122624,8.666893],[50.122295,8.667784],[50.121927,8.66921],[50.121675,8.670118],[50.121514,8.670619],[50.121303,8.671254],[50.121088,8.671925],[50.120999,8.672302],[50.120946,8.67302],[50.120877,8.674361],[50.120838,8.675345],[50.120926,8.675732]] },
-  { id:'steinweg', name:'Steinweg', area:'Innenstadt · Hauptwache', color:'#f5b700', kind:'street',
-    hint:'Fußgängerzone zwischen Hauptwache und Goetheplatz',
-    line:[[50.113163,8.678906],[50.113197,8.678857],[50.113289,8.678446],[50.113463,8.677933],[50.113517,8.677565],[50.113599,8.677061]] },
-  { id:'biebergasse', name:'Biebergasse', area:'Innenstadt · Hauptwache', color:'#22b8cf', kind:'street',
-    hint:'Fußgängerzone zwischen Hauptwache und Börsenplatz',
-    line:[[50.114067,8.678412],[50.114097,8.678015],[50.114163,8.676969],[50.114219,8.67655]] },
-  { id:'schweizer', name:'Schweizer Platz', area:'Sachsenhausen', color:'#3b82f6', kind:'point',
-    hint:'Platz an der Schweizer Straße, direkt über der U-Station',
-    pos:[50.101880,8.680680] },
-  { id:'merianplatz', name:'Merianplatz', area:'Nordend-Ost', color:'#7c5cff', kind:'point',
-    hint:'Platz an der Berger Straße, direkt an der U4',
-    pos:[50.120600,8.695300] },
-  { id:'bornheim', name:'Bornheim-Mitte', area:'Bornheim', color:'#e64980', kind:'point',
-    hint:'Rund um die U-Station an der Berger Straße (Wochenmarkt)',
-    pos:[50.126098,8.707750] },
+  { id:'steinweg', name:'Steinweg', classes:['7a'], area:'Innenstadt · Hauptwache', color:'#f5b700',
+    where:'Am U-Bahn-Eingang im Steinweg (zwischen Hauptwache und Goetheplatz)', pos:[50.113479,8.678378] },
+  { id:'schweizer', name:'Schweizer Platz', classes:['7b'], area:'Sachsenhausen', color:'#3b82f6',
+    where:'Ecke Oppenheimer Landstraße (Westseite des Platzes)', pos:[50.101900,8.680580] },
+  { id:'biebergasse', name:'Biebergasse', classes:['8a'], area:'Innenstadt · Hauptwache', color:'#22b8cf',
+    where:'Südseite bei den Bäumen', pos:[50.114080,8.677400] },
+  { id:'bornheim', name:'Bornheim Mitte', classes:['8b'], area:'Bornheim · Berger Straße', color:'#e64980',
+    where:'Auf Höhe des Uhrtürmchens', pos:[50.125462,8.706779] },
+  { id:'grueneburgweg', name:'Grüneburgweg', classes:['9a'], area:'Westend-Nord', color:'#ff8a3d',
+    where:'Bereich an der U-Bahn-Station (Eschersheimer Landstraße)', pos:[50.121850,8.675700] },
+  { id:'merianplatz', name:'Merianplatz', classes:['10a','10b'], area:'Nordend-Ost', color:'#7c5cff',
+    where:'Ecke Kantstraße, neben dem U-Bahn-Eingang', pos:[50.120413,8.696055] },
+  { id:'leipziger', name:'Leipziger Straße', classes:['11a','11b'], area:'Bockenheim', color:'#ff5a5f',
+    where:'Auf Höhe der Bockenheimer Warte (Ostende der Straße)', pos:[50.120200,8.650300] },
 ];
 
 /* U-Bahn: Stationen + Linienverläufe (VGF-Netz, Ausschnitt) */
@@ -301,12 +296,12 @@ const LINES = [
 const UCOL = {U1:'#c8102e',U2:'#00a650',U3:'#3755a1',U4:'#e2007a',U5:'#017d3f',U6:'#0072bc',U7:'#e4870a',U8:'#c78ab9'};
 
 /* Zeitmodell (Minuten) */
-const WALK_M_PER_MIN = 78, DETOUR = 1.28, MIN_PER_STOP = 1.8, WAIT = 4, TRANSFER = 4;
+const WALK_M_PER_MIN = 78, DETOUR = 1.28, MIN_PER_STOP = 1.8, WAIT = 4, TRANSFER = 4, VISIT = 10; // VISIT: Zeit zum Fotografieren
 
 /* =====================================================================
    State (localStorage)
    ===================================================================== */
-const KEY = 'rowday-tour-v1';
+const KEY = 'wowday-tour-v1';
 const store = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch{ return d; } },
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} },
@@ -324,19 +319,16 @@ const hav = (a, b) => {
   const x = Math.sin(dp/2)**2 + Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dl/2)**2;
   return 2*R*Math.asin(Math.sqrt(x));
 };
-const lineLen = l => l.reduce((s,p,i) => i ? s + hav(l[i-1], p) : 0, 0);
 const walkMin = (a, b) => hav(a, b) * DETOUR / WALK_M_PER_MIN;
-const midOf = l => { const L = lineLen(l)/2; let s = 0; for (let i=1;i<l.length;i++){ const d = hav(l[i-1],l[i]); if (s+d >= L){ const t=(L-s)/d; return [l[i-1][0]+(l[i][0]-l[i-1][0])*t, l[i-1][1]+(l[i][1]-l[i-1][1])*t]; } s+=d; } return l[0]; };
 STOPS.forEach(s => {
-  if (s.kind === 'street'){ s.len = lineLen(s.line); s.pos = midOf(s.line); s.ends = [s.line[0], s.line[s.line.length-1]]; }
-  else s.ends = [s.pos, s.pos];
-  s.near = Object.entries(STATIONS).map(([n,p]) => ({ n, d: Math.min(...s.ends.map(e => hav(e,p))) }))
+  s.near = Object.entries(STATIONS).map(([n,p]) => ({ n, d: hav(s.pos, p) }))
     .sort((a,b) => a.d-b.d).filter((x,i) => i===0 || x.d < 450).slice(0,2);
 });
 const fmtMin = m => m < 60 ? Math.round(m)+' min' : Math.floor(m/60)+' h '+String(Math.round(m%60)).padStart(2,'0');
 const fmtKm = m => m < 1000 ? Math.round(m/10)*10+' m' : (m/1000).toFixed(1).replace('.',',')+' km';
 const linesAt = n => LINES.flatMap(l => l.seq.includes(n) ? l.short : []);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const classLabel = s => (s.classes.length > 1 ? 'Klassen ' : 'Klasse ') + s.classes.join(' & ');
 const uChips = arr => arr.map(u => `<span class="ul" style="background:${UCOL[u]||'#555'}">${u}</span>`).join('');
 
 /* =====================================================================
@@ -390,7 +382,7 @@ function leg(a, b){
 }
 
 /* =====================================================================
-   Routenoptimierung: alle Reihenfolgen + Laufrichtung jeder Straße
+   Routenoptimierung: alle Reihenfolgen durchprobieren (7! = 5040)
    ===================================================================== */
 function permutations(arr){
   if (arr.length <= 1) return [arr.slice()];
@@ -401,22 +393,15 @@ function permutations(arr){
 function optimize(start){
   const open = STOPS.filter(s => !isDone(s.id));
   if (!open.length) return null;
-  const visit = s => s.kind === 'street' ? s.len / WALK_M_PER_MIN : 4; // Zeit vor Ort
   let best = null;
   for (const perm of permutations(open)){
-    const streets = perm.filter(s => s.kind === 'street').length;
-    for (let mask = 0; mask < (1 << streets); mask++){
-      let cost = 0, cur = start, si = 0; const dirs = [];
-      for (const s of perm){
-        let rev = false;
-        if (s.kind === 'street'){ rev = !!(mask & (1 << si++)); }
-        const [inP, outP] = rev ? [s.ends[1], s.ends[0]] : s.ends;
-        if (cur) cost += leg(cur, inP).min;
-        cost += visit(s); cur = outP; dirs.push(rev);
-        if (best && cost >= best.cost) break;
-      }
-      if (!best || cost < best.cost) best = { cost, order: perm, dirs };
+    let cost = 0, cur = start;
+    for (const s of perm){
+      if (cur) cost += leg(cur, s.pos).min;
+      cost += VISIT; cur = s.pos;
+      if (best && cost >= best.cost) break;
     }
+    if (!best || cost < best.cost) best = { cost, order: perm };
   }
   return best;
 }
@@ -444,7 +429,7 @@ function setBase(dark){
 }
 
 const routeLayer = L.layerGroup().addTo(map);
-const streetLayer = L.layerGroup().addTo(map);
+const areaLayer = L.layerGroup().addTo(map);
 const stationLayer = L.layerGroup();
 const markerLayer = L.layerGroup().addTo(map);
 
@@ -453,7 +438,7 @@ Object.entries(STATIONS).forEach(([n, p]) => {
     .bindTooltip(`${n} · ${linesAt(n).join(' ')}`, { className:'lbl', direction:'top', offset:[0,-10] }).addTo(stationLayer);
 });
 
-const markers = {}, streets = {};
+const markers = {}, areas = {};
 let order = [], focusId = null, me = null, meMarker = null, meCircle = null, watchId = null;
 
 function iconFor(s, n){
@@ -463,20 +448,14 @@ function iconFor(s, n){
 }
 function popupFor(s){
   const p = prog(s.id);
-  return `<b>${esc(s.name)}</b><br><span style="color:var(--muted)">${esc(s.area)}</span><br>${esc(s.hint)}
-    ${s.len ? `<br>Länge: <b style="font-size:13px">${fmtKm(s.len)}</b>` : ''}
+  return `<b>${esc(s.name)}</b> · ${esc(classLabel(s))}<br><span style="color:var(--muted)">${esc(s.area)}</span><br>📍 ${esc(s.where)}
     <br>🚇 ${s.near.map(x => esc(x.n)+' '+uChips(linesAt(x.n))).join(' · ')}
     ${p.done ? `<br><span style="color:var(--ok);font-weight:600">✓ ${p.by?esc(p.by)+', ':''}${new Date(p.at).toLocaleString('de-DE',{weekday:'short',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
     <button class="pbtn ${p.done?'undo':''}" onclick="toggleDone('${s.id}')">${p.done?'Rückgängig':'📸 Fotos gemacht'}</button>`;
 }
 STOPS.forEach(s => {
-  if (s.kind === 'street'){
-    const casing = L.polyline(s.line, { color:'#fff', weight:12, opacity:.9, lineCap:'round' });
-    const main = L.polyline(s.line, { color:s.color, weight:7, opacity:.95, lineCap:'round' });
-    streets[s.id] = { casing, main };
-    casing.addTo(streetLayer); main.addTo(streetLayer);
-    main.on('click', () => focus(s.id, true));
-  }
+  // kleiner Suchbereich um den Stand
+  areas[s.id] = L.circle(s.pos, { radius:30, color:s.color, weight:2, fillColor:s.color, fillOpacity:.15, dashArray:'4 6' }).addTo(areaLayer);
   markers[s.id] = L.marker(s.pos, { icon: iconFor(s, '·'), riseOnHover:true })
     .bindPopup(() => popupFor(s), { closeButton:false, maxWidth:260 })
     .on('click', () => focus(s.id, false)).addTo(markerLayer);
@@ -484,7 +463,7 @@ STOPS.forEach(s => {
 
 /* ---------- Route zeichnen (mit echten Fußwegen via OSRM) ---------- */
 const OSRM = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot/';
-const geomCache = store.get('rowday-geom', {});
+const geomCache = store.get('wowday-geom', {});
 const inflight = new Map(); let queue = Promise.resolve();
 function footGeom(a, b){
   const k = a.map(x=>x.toFixed(5)).join()+';'+b.map(x=>x.toFixed(5)).join();
@@ -496,7 +475,7 @@ function footGeom(a, b){
       const r = await fetch(`${OSRM}${a[1]},${a[0]};${b[1]},${b[0]}?overview=full&geometries=geojson`);
       const j = await r.json();
       const g = j.routes[0].geometry.coordinates.map(c => [+c[1].toFixed(6), +c[0].toFixed(6)]);
-      geomCache[k] = g; store.set('rowday-geom', geomCache); return g;
+      geomCache[k] = g; store.set('wowday-geom', geomCache); return g;
     }catch{ return [a, b]; }
     finally{ inflight.delete(k); await new Promise(r => setTimeout(r, 150)); }
   });
@@ -525,15 +504,13 @@ function recompute(){
   routeLayer.clearLayers();
   if (plan){
     let cur = start;
-    plan.order.forEach((s, i) => {
-      const rev = plan.dirs[i];
-      const [inP, outP] = rev ? [s.ends[1], s.ends[0]] : s.ends;
+    plan.order.forEach(s => {
       if (cur){
-        const l = leg(cur, inP);
-        if (l.mode === 'walk') drawWalk(cur, inP, drawToken);
-        else { drawWalk(cur, l.from.p, drawToken); l.rides.forEach(drawRide); drawWalk(l.to.p, inP, drawToken); }
+        const l = leg(cur, s.pos);
+        if (l.mode === 'walk') drawWalk(cur, s.pos, drawToken);
+        else { drawWalk(cur, l.from.p, drawToken); l.rides.forEach(drawRide); drawWalk(l.to.p, s.pos, drawToken); }
       }
-      cur = outP;
+      cur = s.pos;
     });
   }
   render();
@@ -551,11 +528,11 @@ function render(){
   $('ringNum').textContent = `${done}/${total}`;
   $('subline').textContent = done === total ? 'Alles erledigt — stark! 🎉' : `Noch ${total-done} Stand${total-done===1?'':'e'} offen`;
 
-  // Marker + Straßen
+  // Marker + Standbereiche
   STOPS.forEach(s => {
     markers[s.id].setIcon(iconFor(s, numberOf(s.id)));
     markers[s.id].setZIndexOffset(isDone(s.id) ? -100 : 100);
-    if (streets[s.id]) streets[s.id].main.setStyle({ color: isDone(s.id) ? '#16b37e' : s.color, opacity: isDone(s.id) ? .55 : .95 });
+    areas[s.id].setStyle({ color: isDone(s.id) ? '#16b37e' : s.color, fillColor: isDone(s.id) ? '#16b37e' : s.color });
   });
 
   // Liste
@@ -566,14 +543,15 @@ function render(){
       <div class="badge">${numberOf(s.id)}</div>
       <div class="info">
         <h3><span>${esc(s.name)}</span></h3>
+        <div class="where">📍 ${esc(s.where)}</div>
         <div class="meta">
+          <span class="chip cls" style="background:${s.color}">${esc(classLabel(s))}</span>
           <span class="chip">${esc(s.area)}</span>
-          <span class="chip">${s.kind==='street' ? '🛣️ Straße · '+fmtKm(s.len) : '📍 Platz'}</span>
           ${d !== null ? `<span class="chip">↗ ${fmtKm(d)}</span>` : ''}
           ${s.near.slice(0,1).map(x => `<span class="chip">🚇 ${esc(x.n)}</span>`).join('')}
         </div>
         ${p.done ? `<div class="done-by">✓ ${p.by ? esc(p.by)+' · ' : ''}${new Date(p.at).toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
-        <input class="note" placeholder="Notiz (z. B. Klasse, Ansprechpartner…)" value="${esc(p.note||'')}" data-note="${s.id}">
+        <input class="note" placeholder="Notiz (z. B. was verkauft wird, Ansprechpartner…)" value="${esc(p.note||'')}" data-note="${s.id}">
       </div>
       <button class="check" data-check="${s.id}" aria-label="${esc(s.name)} erledigt"><span class="cam">📷</span><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
     </div>`;
@@ -592,7 +570,7 @@ function renderRoute(){
 
   let cur = state.startMode==='me' && me ? me : null, walkDist = 0, html = '';
   plan.order.forEach((s, i) => {
-    const rev = plan.dirs[i], [inP, outP] = rev ? [s.ends[1], s.ends[0]] : s.ends;
+    const inP = s.pos;
     let steps = '';
     if (cur){
       const l = leg(cur, inP);
@@ -614,13 +592,9 @@ function renderRoute(){
     } else {
       steps += `<div class="step"><i>🚩</i><span>Start hier · nächste Station ${s.near.map(x => esc(x.n)+' '+uChips(linesAt(x.n))).join(', ')}</span></div>`;
     }
-    if (s.kind === 'street'){
-      walkDist += s.len;
-      const a = rev ? 'Ost' : 'West', b = rev ? 'West' : 'Ost';
-      steps += `<div class="step"><i>🔍</i><span>Straße von ${a} nach ${b} ablaufen · ${fmtKm(s.len)}, ca. ${fmtMin(s.len/WALK_M_PER_MIN)}</span></div>`;
-    }
-    html += `<div class="leg" style="--c:${s.color}"><div class="dot">${i+1}</div><h4>${esc(s.name)}</h4>${steps}</div>`;
-    cur = outP;
+    steps += `<div class="step"><i>📍</i><span>${esc(s.where)}</span></div>`;
+    html += `<div class="leg" style="--c:${s.color}"><div class="dot">${i+1}</div><h4>${esc(s.name)} <span class="ul" style="background:${s.color}">${esc(s.classes.join(' & '))}</span></h4>${steps}</div>`;
+    cur = s.pos;
   });
 
   el.innerHTML = sel + `<div class="summary">
@@ -628,15 +602,14 @@ function renderRoute(){
       <div class="kpi"><b>${fmtMin(plan.cost)}</b><span>geschätzt</span></div>
       <div class="kpi"><b>${fmtKm(walkDist)}</b><span>zu Fuß</span></div>
     </div>` + html +
-    `<div class="hint">Die Reihenfolge wird aus allen möglichen Kombinationen berechnet (inkl. Laufrichtung jeder Straße) und passt sich an, sobald ihr Stände abhakt. Zeiten sind Schätzungen inkl. ${WAIT} min Wartezeit pro Fahrt — vor dem Einsteigen kurz die Live-Verbindung prüfen.</div>`;
+    `<div class="hint">Die Reihenfolge wird aus allen möglichen Kombinationen berechnet und passt sich an, sobald ihr Stände abhakt. Zeiten sind Schätzungen inkl. ${WAIT} min Wartezeit pro Fahrt und ${VISIT} min zum Fotografieren pro Stand — vor dem Einsteigen kurz die Live-Verbindung prüfen.</div>`;
 }
 
 function focus(id, pan){
   focusId = id;
   const s = STOPS.find(x => x.id === id);
   if (pan){
-    if (s.kind === 'street') map.flyToBounds(L.latLngBounds(s.line).pad(.6), { duration:.9, paddingTopLeft: panelPad() });
-    else map.flyTo(s.pos, 17, { duration:.9 });
+    map.flyTo(s.pos, 18, { duration:.9 });
     setTimeout(() => markers[id].openPopup(), 950);
   }
   render();
@@ -685,7 +658,7 @@ $('me').addEventListener('input', e => { state.name = e.target.value.trim(); sav
 $('grab').onclick = () => $('panel').classList.toggle('mini');
 $('fabFit').onclick = fitAll;
 function fitAll(){
-  const b = L.latLngBounds(STOPS.flatMap(s => s.kind==='street' ? s.line : [s.pos]));
+  const b = L.latLngBounds(STOPS.map(s => s.pos));
   if (me) b.extend(me);
   map.flyToBounds(b, { paddingTopLeft: panelPad(), paddingBottomRight: innerWidth > 760 ? [70,20] : [20, innerHeight*.58], duration:.9 });
 }
@@ -755,7 +728,7 @@ function modal(title, text, area, buttons){
 $('modal').onclick = e => { if (e.target.id === 'modal') $('modal').classList.remove('show'); };
 $('btnShare').onclick = async () => {
   const url = location.href.split('#')[0] + '#sync=' + exportCode();
-  if (navigator.share){ try{ await navigator.share({ title:'Rowday Foto-Tour', text:'Unser Fortschritt bei der Rowday-Tour', url }); return; }catch(e){ if (e.name === 'AbortError') return; } }
+  if (navigator.share){ try{ await navigator.share({ title:'WOW-Day Foto-Tour', text:'Unser Fortschritt bei der WOW-Day-Foto-Tour', url }); return; }catch(e){ if (e.name === 'AbortError') return; } }
   modal('Fortschritt teilen', 'Diesen Link an die anderen schicken — beim Öffnen werden die abgehakten Stände übernommen (bereits Erledigtes bleibt erhalten).', url, [
     { label:'Kopieren', cls:'primary', fn: () => { navigator.clipboard?.writeText(url).then(() => toast('Link kopiert ✓')); } },
     { label:'Schließen' }]);
